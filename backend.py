@@ -1,6 +1,6 @@
-﻿"""
-FastAPI Backend â€” Invoice Agent
-Servidor Ãºnico. app.py es el mÃ³dulo de procesamiento de correos.
+"""
+FastAPI Backend — Invoice Agent
+Servidor único. app.py es el módulo de procesamiento de correos.
 """
 import logging
 logging.getLogger("watchfiles").setLevel(logging.ERROR)
@@ -8,7 +8,6 @@ logging.getLogger("watchfiles").setLevel(logging.ERROR)
 from dotenv import load_dotenv
 load_dotenv()
 
-# Importar el mÃ³dulo agente (app.py â€” SIN circular import)
 import app as app_module
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -25,7 +24,7 @@ fastapi_app.add_middleware(
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
 )
 
-# â”€â”€ LOG STORE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── LOG STORE ─────────────────────────────────────────────────────────────────
 class LogStore:
     def __init__(self):
         self.logs: List[Dict] = []
@@ -51,7 +50,7 @@ class LogStore:
 log_store = LogStore()
 connected_clients: set = set()
 
-# â”€â”€ ESTADO SCHEDULER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── ESTADO SCHEDULER ──────────────────────────────────────────────────────────
 scheduler_state = {
     "enabled": False,
     "mode": "interval",
@@ -65,11 +64,10 @@ _scheduler_thread: Optional[threading.Thread] = None
 _scheduler_stop = threading.Event()
 
 
-# â”€â”€ PROCESO PRINCIPAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── PROCESO PRINCIPAL ─────────────────────────────────────────────────────────
 def run_process_with_logs():
-    """Ejecuta app.process_emails() capturando prints como logs del dashboard."""
     if scheduler_state["running"]:
-        log_store.add_log("Proceso ya en ejecuciÃ³n, espera que termine", "warning")
+        log_store.add_log("Proceso ya en ejecución, espera que termine", "warning")
         return
 
     scheduler_state["running"] = True
@@ -81,9 +79,9 @@ def run_process_with_logs():
         def write(self, msg):
             msg = msg.strip()
             if msg:
-                level = "error"   if any(x in msg for x in ["Error", "error", "ERROR", "âŒ"]) else \
-                        "success" if any(x in msg for x in ["completado", "guardada", "âœ…", "exitosamente", "Factura guardada"]) else \
-                        "warning" if any(x in msg for x in ["Warning", "warning", "âš ï¸"]) else "info"
+                level = "error"   if any(x in msg for x in ["Error", "error", "ERROR", "❌"]) else \
+                        "success" if any(x in msg for x in ["completado", "guardada", "✅", "exitosamente", "Factura guardada"]) else \
+                        "warning" if any(x in msg for x in ["Warning", "warning", "⚠️"]) else "info"
                 log_store.add_log(msg, level)
             return len(msg if msg else "")
         def flush(self):
@@ -92,7 +90,6 @@ def run_process_with_logs():
     old_stdout = sys.stdout
     sys.stdout = LogCapture()
 
-    # Vaciar processed_emails.json para que todos los correos sean "nuevos"
     processed_path = getattr(app_module, 'PROCESSED_FILE', 'processed_emails.json')
     backup_ids = set()
     try:
@@ -115,7 +112,6 @@ def run_process_with_logs():
     finally:
         sys.stdout = old_stdout
         scheduler_state["running"] = False
-        # Restaurar IDs previos + nuevos encontrados en esta ejecucion
         try:
             if os.path.exists(processed_path):
                 with open(processed_path) as f:
@@ -127,15 +123,11 @@ def run_process_with_logs():
 
 
 def _launch_process_thread():
-    t = threading.Thread(
-        target=run_process_with_logs,
-        daemon=True,
-        name="invoice-processor"
-    )
+    t = threading.Thread(target=run_process_with_logs, daemon=True, name="invoice-processor")
     t.start()
 
 
-# â”€â”€ SCHEDULER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── SCHEDULER ─────────────────────────────────────────────────────────────────
 def _rebuild_schedule():
     schedule.clear()
     if not scheduler_state["enabled"]:
@@ -177,9 +169,8 @@ def _start_scheduler():
 _start_scheduler()
 
 
-# â”€â”€ LEER EXCEL SEGURO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── LEER SHEETS ───────────────────────────────────────────────────────────────
 def read_sheets_df():
-    """Lee todos los registros de Google Sheets y retorna un DataFrame de pandas."""
     import pandas as pd
     try:
         ws = app_module.get_sheet()
@@ -187,16 +178,15 @@ def read_sheets_df():
         if not rows or len(rows) < 2:
             return None
         headers = rows[0]
-        data    = rows[1:]
+        data = rows[1:]
         df = pd.DataFrame(data, columns=headers)
         df = df.replace("", pd.NA).dropna(how="all")
         return df
-    except Exception as e:
+    except Exception:
         return None
 
 
-# â”€â”€ RUTAS API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+# ── RUTAS API ──────────────────────────────────────────────────────────────────
 @fastapi_app.get("/api/health")
 async def health_check():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
@@ -225,7 +215,7 @@ async def get_statistics():
             "error": None,
         }
     except Exception as e:
-        log_store.add_log(f"Error estadÃ­sticas: {e}", "error")
+        log_store.add_log(f"Error estadísticas: {e}", "error")
         return {"total": 0, "pendientes": 0, "pagadas": 0, "vencidas": 0,
                 "total_cop": 0.0, "total_usd": 0.0, "error": str(e)}
 
@@ -272,11 +262,11 @@ async def get_logs():
 
 @fastapi_app.post("/api/export-excel")
 async def export_excel():
-    """Genera un Excel descargable a partir de los datos en Google Sheets."""
     try:
         path = app_module.export_to_excel()
         from fastapi.responses import FileResponse
-        return FileResponse(path, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        return FileResponse(path,
+                            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                             filename="facturas_seguimiento.xlsx")
     except Exception as e:
         from fastapi.responses import JSONResponse
@@ -292,13 +282,13 @@ async def clear_logs():
 @fastapi_app.get("/api/status")
 async def get_status():
     return {
-        "agente":        "activo",
+        "agente":         "activo",
         "almacenamiento": "google_sheets",
-        "sheets_id":     app_module.GOOGLE_SHEETS_ID,
-        "procesando":    scheduler_state["running"],
-        "clientes_ws":   len(connected_clients),
-        "timestamp":     datetime.now().isoformat(),
-        "logs_totales":  len(log_store.get_logs()),
+        "sheets_id":      app_module.GOOGLE_SHEETS_ID,
+        "procesando":     scheduler_state["running"],
+        "clientes_ws":    len(connected_clients),
+        "timestamp":      datetime.now().isoformat(),
+        "logs_totales":   len(log_store.get_logs()),
     }
 
 
@@ -319,20 +309,82 @@ async def set_scheduler(config: dict):
     return {**scheduler_state}
 
 
-# â”€â”€ WEBSOCKET â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── CHAT CON CLAUDE (Anthropic) ───────────────────────────────────────────────
+@fastapi_app.post("/api/chat")
+async def chat_with_agent(payload: dict):
+    """
+    Chat con Claude (Anthropic) usando contexto de facturas actuales.
+    Recibe: { message, history, context }
+    """
+    try:
+        import anthropic
+
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if not api_key:
+            return {"response": "❌ Error: ANTHROPIC_API_KEY no configurada en .env"}
+
+        client = anthropic.Anthropic(api_key=api_key)
+
+        context = payload.get("context", {})
+        history = payload.get("history", [])
+        message = payload.get("message", "")
+
+        system_prompt = f"""Eres un asistente financiero especializado en análisis de facturas del sistema Invoice Agent.
+Tienes acceso al estado actual del sistema:
+
+• Total de facturas registradas: {context.get('total', 'N/A')}
+• Facturas pendientes de pago: {context.get('pendientes', 'N/A')}
+• Facturas pagadas: {context.get('pagadas', 'N/A')}
+• Facturas vencidas: {context.get('vencidas', 'N/A')}
+• Total acumulado en COP: ${context.get('total_cop', 0):,.0f}
+• Total acumulado en USD: ${context.get('total_usd', 0):,.2f}
+
+El sistema extrae facturas automáticamente de Gmail usando Claude AI (Anthropic).
+Los campos disponibles por factura son: Mes, Fecha Factura, Número Factura, Proveedor,
+ID, Número ID, Subtotal, Descuento, IVA, Rete IVA, Rete ICA, Impto Consumo, Propina,
+Otros Impuestos, Retención en la fuente, Administración, Utilidad, Imprevistos,
+Valor Total, Clasificación, Estado, Valor Pagado, Valor Por Pagar, Fecha Pago,
+Cliente, Cotización Inventto, Observaciones.
+
+Responde siempre en español. Sé conciso y directo. Si te piden datos específicos
+que no tienes disponibles, indícalo claramente y sugiere cómo obtenerlos."""
+
+        # Construir historial de mensajes
+        messages = []
+        for h in history[-10:]:
+            role = h.get("role", "user")
+            if role not in ("user", "assistant"):
+                continue
+            messages.append({"role": role, "content": h["content"]})
+        messages.append({"role": "user", "content": message})
+
+        resp = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=messages
+        )
+
+        reply = resp.content[0].text.strip()
+        return {"response": reply}
+
+    except Exception as e:
+        log_store.add_log(f"Error en chat: {str(e)}", "error")
+        return {"response": f"Error al procesar la consulta: {str(e)}"}
+
+
+# ── WEBSOCKET ─────────────────────────────────────────────────────────────────
 @fastapi_app.websocket("/ws/logs")
 async def websocket_logs(websocket: WebSocket):
     await websocket.accept()
     connected_clients.add(websocket)
     try:
-        # Enviar logs existentes al conectar
         for log in log_store.get_logs():
             await websocket.send_json(log)
         last_count = len(log_store.get_logs())
 
         while True:
             await asyncio.sleep(1.5)
-            # Ping para mantener la conexiÃ³n viva
             try:
                 await websocket.send_json({
                     "type": "ping", "message": "", "level": "ping",
@@ -340,7 +392,6 @@ async def websocket_logs(websocket: WebSocket):
                 })
             except Exception:
                 break
-            # Enviar nuevos logs
             logs = log_store.get_logs()
             for log in logs[last_count:]:
                 try:
@@ -357,7 +408,7 @@ async def websocket_logs(websocket: WebSocket):
         connected_clients.discard(websocket)
 
 
-# â”€â”€ DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── DASHBOARD ─────────────────────────────────────────────────────────────────
 if os.path.exists("static"):
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -382,69 +433,9 @@ async def root():
     except Exception:
         pass
     return "<h1>Invoice Agent</h1><a href='/dashboard.html'>Dashboard</a> | <a href='/docs'>API Docs</a>"
-# ── CHAT CON IA ────────────────────────────────────────────────────────────────
-@fastapi_app.post("/api/chat")
-async def chat_with_agent(payload: dict):
-    """
-    Endpoint de chat que usa Gemini con contexto de las facturas actuales.
-    Recibe: { message, history, context }
-    """
-    try:
-        import google.generativeai as genai
 
-        api_key = os.getenv("GOOGLE_API_KEY")
-        if not api_key:
-            return {"response": "Error: GOOGLE_API_KEY no configurada."}
 
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        # Construir contexto de facturas
-        context = payload.get("context", {})
-        ctx_text = f"""
-Eres un asistente financiero especializado en análisis de facturas.
-Tienes acceso a los siguientes datos actuales del sistema:
-
-- Total de facturas registradas: {context.get('total', 'N/A')}
-- Facturas pendientes de pago: {context.get('pendientes', 'N/A')}
-- Facturas pagadas: {context.get('pagadas', 'N/A')}
-- Facturas vencidas: {context.get('vencidas', 'N/A')}
-- Total en COP: ${context.get('total_cop', 0):,.0f}
-- Total en USD: ${context.get('total_usd', 0):,.2f}
-
-El sistema extrae facturas automáticamente de correos Gmail usando IA (Gemini).
-Las facturas tienen los campos: Mes, Fecha Factura, Número Factura, Proveedor,
-ID, Número ID, Subtotal, Descuento, IVA, Rete IVA, Rete ICA, Impto Consumo,
-Propina, Otros Impuestos, Retención en la fuente, Administración, Utilidad,
-Imprevistos, Valor Total, Clasificación, Estado, Valor Pagado, Valor Por Pagar,
-Fecha Pago, Cliente, Cotización Inventto, Observaciones.
-
-Responde siempre en español, de forma clara y concisa.
-Si te preguntan datos específicos que no tienes, indica qué información
-adicional necesitarías para responder.
-"""
-
-        # Construir historial
-        history = payload.get("history", [])
-        message = payload.get("message", "")
-
-        # Construir prompt con historial
-        conversation = ctx_text + "\n\n"
-        for h in history[-8:]:  # últimos 8 mensajes
-            role = "Usuario" if h["role"] == "user" else "Asistente"
-            conversation += f"{role}: {h['content']}\n\n"
-        conversation += f"Usuario: {message}\n\nAsistente:"
-
-        response = model.generate_content(conversation)
-        reply = response.text.strip()
-
-        return {"response": reply}
-
-    except Exception as e:
-        log_store.add_log(f"Error en chat: {str(e)}", "error")
-        return {"response": f"Error al procesar la consulta: {str(e)}"}
-
-# â”€â”€ ENTRY POINT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── ENTRY POINT ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
     print("  Dashboard : http://localhost:9000/dashboard.html")
