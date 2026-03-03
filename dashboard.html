@@ -3,956 +3,1472 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Invoice Agent</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<title>Invoice Agent · Dashboard</title>
 <style>
+/* ─── RESET & BASE ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
 :root {
-  --bg:       #f5f0eb;
-  --surface:  #faf7f4;
-  --surface2: #ede8e1;
-  --border:   #d6cfc6;
-  --border2:  #e8e2da;
-  --ink:      #1a1612;
-  --ink2:     #4a3f35;
-  --ink3:     #8a7a6e;
-  --accent:   #2c1810;
-  --warm:     #c17f3e;
-  --success:  #3a7d44;
-  --warning:  #b5620a;
-  --danger:   #9b2335;
-  --chat-me:  #2c1810;
-  --chat-ai:  #faf7f4;
-  --serif:    'Playfair Display', Georgia, serif;
-  --mono:     'DM Mono', 'Courier New', monospace;
-  --sans:     'DM Sans', system-ui, sans-serif;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:var(--bg);color:var(--ink);
-  font-family:var(--sans);font-size:13px;
-  min-height:100vh;
+  --font: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+
+  /* Paleta principal */
+  --c-bg:       #F0F2F5;
+  --c-surface:  #FFFFFF;
+  --c-surface2: #F7F8FA;
+  --c-border:   #E2E5EA;
+  --c-border2:  #ECEFF3;
+
+  /* Texto */
+  --c-ink:      #0F1923;
+  --c-ink2:     #3A4553;
+  --c-ink3:     #7B8694;
+  --c-ink4:     #A8B0BC;
+
+  /* Colores de estado */
+  --c-primary:  #1B4FD8;
+  --c-primary2: #1641B5;
+  --c-primary-bg: rgba(27,79,216,.07);
+  --c-warning:  #D97706;
+  --c-warning-bg: rgba(217,119,6,.08);
+  --c-success:  #059669;
+  --c-success-bg: rgba(5,150,105,.08);
+  --c-danger:   #DC2626;
+  --c-danger-bg: rgba(220,38,38,.08);
+  --c-accent:   #7C3AED;
+  --c-accent-bg: rgba(124,58,237,.08);
+
+  /* Dark panel (terminal) */
+  --c-dark:     #0D1117;
+  --c-dark2:    #161B22;
+  --c-dark3:    #21262D;
+
+  /* Sombras */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:     0 4px 6px rgba(0,0,0,.05), 0 2px 4px rgba(0,0,0,.04);
+  --shadow-lg:  0 10px 25px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.05);
+
+  --radius:     10px;
+  --radius-sm:  6px;
+  --radius-lg:  14px;
 }
 
-/* ── HEADER ── */
-header{
-  background:var(--accent);color:#f5f0eb;
-  padding:0 40px;
-  display:flex;align-items:center;justify-content:space-between;
-  height:56px;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.logo{display:flex;align-items:center;gap:12px;}
-.logo-mark{
-  width:28px;height:28px;border:1px solid rgba(255,255,255,0.3);
-  border-radius:4px;display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-size:14px;color:#f5f0eb;
-}
-.logo-name{font-family:var(--serif);font-size:15px;letter-spacing:0.04em;color:#f5f0eb;}
-.logo-sub{font-size:10px;color:rgba(245,240,235,0.5);letter-spacing:0.08em;text-transform:uppercase;margin-left:4px;}
-.header-right{display:flex;align-items:center;gap:20px;}
-#upd{font-size:10px;color:rgba(245,240,235,0.4);letter-spacing:0.04em;font-family:var(--mono);}
-.ws-pill{
-  display:flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:100px;
-  border:1px solid rgba(255,255,255,0.15);
-  font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
-  color:rgba(245,240,235,0.4);transition:all .4s;
-}
-.ws-pill .dot{width:5px;height:5px;border-radius:50%;background:rgba(245,240,235,0.3);}
-.ws-pill.on{color:rgba(245,240,235,0.8);border-color:rgba(255,255,255,0.25);}
-.ws-pill.on .dot{background:#7bc67e;box-shadow:0 0 6px #7bc67e;animation:blink 2s infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+html { font-size: 14px; }
 
-/* ── TABS ── */
-.tabs{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0 40px;display:flex;gap:0;
+body {
+  font-family: var(--font);
+  background: var(--c-bg);
+  color: var(--c-ink);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
-.tab{
-  padding:14px 24px;font-size:11px;font-weight:500;letter-spacing:0.1em;
-  text-transform:uppercase;color:var(--ink3);border-bottom:2px solid transparent;
-  cursor:pointer;transition:all .2s;font-family:var(--sans);background:none;border-left:none;border-right:none;border-top:none;
-}
-.tab:hover{color:var(--ink2);}
-.tab.active{color:var(--accent);border-bottom-color:var(--warm);}
 
-/* ── WRAP ── */
-.wrap{max-width:1600px;margin:0 auto;padding:32px 40px 56px;}
+/* ─── SCROLLBAR ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-ink4); }
 
-/* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;
-  background:var(--border);border:1px solid var(--border);border-radius:10px;
-  overflow:hidden;margin-bottom:28px;}
-.stat{background:var(--surface);padding:20px 20px 18px;}
-.stat-lbl{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink3);font-family:var(--mono);margin-bottom:10px;}
-.stat-val{font-family:var(--serif);font-size:28px;color:var(--ink);line-height:1;}
-.stat-sub{font-size:10px;color:var(--ink3);margin-top:5px;font-family:var(--mono);}
-.stat-val.cw{color:var(--warning);}
-.stat-val.cg{color:var(--success);}
-.stat-val.cr{color:var(--danger);}
-.stat-val.cm{color:var(--warm);}
-@media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr);}}
+/* ─── HEADER ───────────────────────────────────────────────────────────────── */
+.header {
+  background: var(--c-dark);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 58px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-/* ── GRID ── */
-.grid{display:grid;grid-template-columns:1fr 360px;gap:20px;}
-@media(max-width:1100px){.grid{grid-template-columns:1fr;}}
+.header-left { display: flex; align-items: center; gap: 14px; }
 
-/* ── PANEL ── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.ph{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px;border-bottom:1px solid var(--border2);
-  background:var(--surface);
+.logo-icon {
+  width: 34px; height: 34px;
+  background: var(--c-primary);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
 }
-.pt{font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink3);font-family:var(--mono);}
 
-/* ── PIPELINE ── */
-.pipeline{
-  display:flex;align-items:center;padding:14px 20px;
-  background:var(--surface2);border-bottom:1px solid var(--border);
-  overflow-x:auto;gap:2px;
-}
-.ps{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;}
-.pi{
-  width:30px;height:30px;border:1px solid var(--border);border-radius:6px;
-  display:flex;align-items:center;justify-content:center;font-size:12px;
-  background:var(--surface);transition:all .4s;
-}
-.ps.active .pi{border-color:var(--warm);box-shadow:0 0 10px rgba(193,127,62,.25);background:rgba(193,127,62,.06);}
-.ps.done .pi{border-color:var(--success);background:rgba(58,125,68,.05);}
-.pl{font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);white-space:nowrap;font-family:var(--mono);}
-.ps.active .pl{color:var(--warm);}
-.ps.done .pl{color:var(--success);}
-.pa{width:20px;height:1px;background:var(--border);flex-shrink:0;margin:0 2px;position:relative;top:-8px;}
+.logo-text { display: flex; flex-direction: column; }
+.logo-name { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+.logo-sub  { font-size: 11px; color: rgba(255,255,255,.35); letter-spacing: 0.3px; margin-top: -1px; }
 
-/* ── BOTONES ── */
-.btn{
-  display:flex;align-items:center;gap:7px;padding:8px 16px;
-  background:var(--accent);border:none;border-radius:6px;
-  color:#f5f0eb;font-family:var(--sans);font-size:11px;font-weight:500;
-  letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;
-  transition:all .2s;
-}
-.btn:hover{background:#3d2218;transform:translateY(-1px);}
-.btn:active{transform:translateY(0);}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.btn.loading .spinner{display:block;} .btn.loading .bicon{display:none;}
-.spinner{width:11px;height:11px;border:2px solid rgba(245,240,235,.2);
-  border-top-color:#f5f0eb;border-radius:50%;animation:spin .7s linear infinite;display:none;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.btn-ghost{
-  padding:6px 12px;font-size:10px;border:1px solid var(--border);border-radius:6px;
-  background:transparent;color:var(--ink3);font-family:var(--sans);cursor:pointer;
-  letter-spacing:0.06em;text-transform:uppercase;transition:all .2s;
-}
-.btn-ghost:hover{color:var(--ink);border-color:var(--ink3);}
+.header-right { display: flex; align-items: center; gap: 16px; }
 
-/* ── TABLA ── */
-.tw{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{
-  padding:10px 14px;text-align:left;font-size:9px;letter-spacing:0.12em;
-  text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border);
-  background:var(--surface2);white-space:nowrap;font-family:var(--mono);font-weight:400;
+.ws-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  transition: all .3s;
 }
-tbody tr{border-bottom:1px solid var(--border2);transition:background .15s;}
-tbody tr:hover{background:var(--surface2);}
-tbody td{padding:10px 14px;color:var(--ink2);font-size:12px;white-space:nowrap;font-family:var(--mono);}
-.badge{display:inline-block;padding:2px 8px;border-radius:3px;
-  font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;font-family:var(--mono);}
-.bp{background:rgba(181,98,10,.08);color:var(--warning);border:1px solid rgba(181,98,10,.2);}
-.bg{background:rgba(58,125,68,.08);color:var(--success);border:1px solid rgba(58,125,68,.18);}
-.br{background:rgba(155,35,53,.08);color:var(--danger);border:1px solid rgba(155,35,53,.18);}
-.bd{background:var(--surface2);color:var(--ink3);border:1px solid var(--border);}
-.empty{padding:48px 20px;text-align:center;color:var(--ink3);font-size:12px;
-  letter-spacing:0.05em;font-family:var(--mono);}
+.ws-badge.connected { color: #34D399; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.08); }
+.ws-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ws-badge.connected .ws-dot { animation: pulse 2s infinite; }
 
-/* ── TERMINAL ── */
-.terminal{
-  height:320px;overflow-y:auto;padding:14px 16px;
-  font-size:11px;line-height:1.8;background:var(--accent);
-  font-family:var(--mono);
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.8); }
 }
-.terminal::-webkit-scrollbar{width:3px;}
-.terminal::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
-.ll{display:flex;gap:10px;margin-bottom:1px;animation:fi .2s ease;}
-@keyframes fi{from{opacity:0;transform:translateY(2px);}to{opacity:1;}}
-.lt{color:rgba(245,240,235,.25);min-width:60px;flex-shrink:0;}
-.lm{color:rgba(245,240,235,.4);flex:1;}
-.ll.info .lm{color:rgba(245,240,235,.55);}
-.ll.success .lm{color:#7bc67e;}
-.ll.error .lm{color:#e07070;}
-.ll.warning .lm{color:#e0a060;}
-.cursor{display:inline-block;width:6px;height:11px;background:rgba(245,240,235,.5);
-  animation:cur 1s step-end infinite;vertical-align:text-bottom;margin-left:2px;}
-@keyframes cur{50%{opacity:0;}}
 
-/* ── SCHEDULER ── */
-.sched-panel{padding:16px 20px;border-top:1px solid var(--border);}
-.sched-title{font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink3);font-family:var(--mono);margin-bottom:14px;}
-.sched-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;}
-.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:100px;transition:.3s;}
-.toggle input:checked + .toggle-track{background:var(--warm);}
-.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;
-  background:white;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-.toggle input:checked + .toggle-track + .toggle-thumb{transform:translateX(16px);}
-.sched-modes{display:flex;gap:6px;margin-bottom:12px;}
-.mode-btn{
-  flex:1;padding:7px;background:transparent;border:1px solid var(--border);border-radius:6px;
-  color:var(--ink3);font-family:var(--mono);font-size:10px;letter-spacing:0.06em;
-  text-transform:uppercase;cursor:pointer;transition:all .2s;text-align:center;
+.header-time {
+  font-size: 11px; color: rgba(255,255,255,.3);
+  font-family: var(--font-mono);
 }
-.mode-btn.sel{border-color:var(--warm);color:var(--warm);background:rgba(193,127,62,.06);}
-.sched-field{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
-.field-lbl{font-size:9px;color:var(--ink3);letter-spacing:0.08em;text-transform:uppercase;font-family:var(--mono);}
-.field-row{display:flex;gap:8px;align-items:center;}
-.sched-input{
-  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
-  color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 10px;
-  outline:none;transition:border-color .2s;
-}
-.sched-input:focus{border-color:var(--warm);}
-.sched-input[type="number"]{width:80px;}
-.sched-input[type="time"]{width:120px;}
-.btn-apply{
-  padding:7px 14px;background:var(--warm);border:none;border-radius:6px;
-  color:white;font-family:var(--mono);font-size:10px;font-weight:500;
-  letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .2s;
-}
-.btn-apply:hover{background:#a66d32;}
-.sched-info{
-  padding:10px 12px;border-radius:6px;font-size:10px;
-  border:1px solid var(--border);color:var(--ink3);background:var(--surface2);
-  font-family:var(--mono);display:flex;flex-direction:column;gap:4px;
-}
-.sched-info.on{border-color:rgba(193,127,62,.3);background:rgba(193,127,62,.04);}
-.si-row{display:flex;justify-content:space-between;}
-.si-val{color:var(--ink2);}
-.si-val.hl{color:var(--warm);}
 
-/* ── CHAT TAB ── */
-#tab-chat{display:none;}
-.chat-wrap{
-  display:grid;grid-template-columns:280px 1fr;gap:0;
-  height:calc(100vh - 180px);min-height:500px;
-  background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;
+/* ─── NAV TABS ──────────────────────────────────────────────────────────────── */
+.nav {
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  padding: 0 28px;
+  display: flex;
+  gap: 4px;
 }
-.chat-sidebar{
-  border-right:1px solid var(--border);display:flex;flex-direction:column;
-  background:var(--surface2);
-}
-.chat-sidebar-header{
-  padding:18px 20px;border-bottom:1px solid var(--border);
-}
-.chat-sidebar-title{font-family:var(--serif);font-size:16px;color:var(--ink);}
-.chat-sidebar-sub{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:3px;letter-spacing:0.06em;}
-.chat-context{padding:16px;flex:1;overflow-y:auto;}
-.ctx-section{margin-bottom:16px;}
-.ctx-title{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink3);font-family:var(--mono);margin-bottom:8px;}
-.ctx-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:7px;
-  padding:10px 12px;
-}
-.ctx-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.ctx-row:last-child{margin-bottom:0;}
-.ctx-label{font-size:10px;color:var(--ink3);font-family:var(--mono);}
-.ctx-value{font-size:11px;color:var(--ink);font-family:var(--mono);font-weight:500;}
-.ctx-value.cw{color:var(--warning);}
-.ctx-value.cg{color:var(--success);}
-.ctx-value.cr{color:var(--danger);}
-.ctx-value.cm{color:var(--warm);}
-.chat-suggestions{padding:0 16px 16px;}
-.sug-title{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--ink3);font-family:var(--mono);margin-bottom:8px;}
-.sug-btn{
-  display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:6px;
-  background:var(--surface);border:1px solid var(--border);border-radius:6px;
-  color:var(--ink2);font-size:11px;font-family:var(--sans);cursor:pointer;
-  transition:all .2s;line-height:1.4;
-}
-.sug-btn:hover{background:rgba(193,127,62,.08);border-color:var(--warm);color:var(--ink);}
 
-/* ── CHAT MAIN ── */
-.chat-main{display:flex;flex-direction:column;}
-.chat-messages{
-  flex:1;overflow-y:auto;padding:24px;
-  display:flex;flex-direction:column;gap:20px;
+.nav-tab {
+  padding: 13px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-ink3);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .2s;
+  font-family: var(--font);
+  display: flex; align-items: center; gap: 7px;
+  letter-spacing: -0.1px;
 }
-.chat-messages::-webkit-scrollbar{width:4px;}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.msg{display:flex;flex-direction:column;max-width:75%;}
-.msg.user{align-self:flex-end;align-items:flex-end;}
-.msg.ai{align-self:flex-start;align-items:flex-start;}
-.msg-bubble{
-  padding:12px 16px;border-radius:10px;font-size:13px;
-  line-height:1.6;font-family:var(--sans);
-}
-.msg.user .msg-bubble{
-  background:var(--accent);color:#f5f0eb;border-radius:10px 10px 2px 10px;
-}
-.msg.ai .msg-bubble{
-  background:var(--surface2);color:var(--ink);border:1px solid var(--border);
-  border-radius:10px 10px 10px 2px;
-}
-.msg-meta{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:4px;padding:0 4px;}
-.msg-ai-label{
-  display:flex;align-items:center;gap:6px;margin-bottom:4px;
-  font-size:10px;color:var(--ink3);font-family:var(--mono);letter-spacing:0.06em;
-}
-.ai-avatar{width:20px;height:20px;background:var(--accent);border-radius:4px;
-  display:flex;align-items:center;justify-content:center;font-family:var(--serif);
-  font-size:10px;color:#f5f0eb;}
-.msg-typing{display:flex;gap:4px;align-items:center;padding:14px 16px;}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--ink3);
-  animation:tdot 1.2s infinite;}
-.typing-dot:nth-child(2){animation-delay:.2s;}
-.typing-dot:nth-child(3){animation-delay:.4s;}
-@keyframes tdot{0%,60%,100%{transform:scale(1);opacity:.4;}30%{transform:scale(1.3);opacity:1;}}
+.nav-tab:hover { color: var(--c-ink2); }
+.nav-tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+.nav-tab .tab-icon { font-size: 15px; }
 
-/* ── CHAT INPUT ── */
-.chat-input-area{
-  border-top:1px solid var(--border);padding:16px 20px;
-  background:var(--surface);
-}
-.chat-input-row{display:flex;gap:10px;align-items:flex-end;}
-.chat-textarea{
-  flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--ink);font-family:var(--sans);font-size:13px;padding:10px 14px;
-  outline:none;resize:none;transition:border-color .2s;min-height:42px;max-height:120px;
-  line-height:1.5;
-}
-.chat-textarea:focus{border-color:var(--warm);}
-.chat-textarea::placeholder{color:var(--ink3);}
-.btn-send{
-  width:40px;height:40px;background:var(--accent);border:none;border-radius:8px;
-  color:#f5f0eb;cursor:pointer;transition:all .2s;display:flex;align-items:center;
-  justify-content:center;font-size:16px;flex-shrink:0;
-}
-.btn-send:hover{background:#3d2218;}
-.btn-send:disabled{opacity:.4;cursor:not-allowed;}
-.chat-hint{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-top:8px;letter-spacing:0.04em;}
+/* ─── LAYOUT ────────────────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
 
-/* ── SCROLLBAR GLOBAL ── */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.container { max-width: 1600px; margin: 0 auto; padding: 24px 28px 48px; }
 
-/* ── TAB VIEWS ── */
-.tab-view{display:none;}
-.tab-view.active{display:block;}
+/* ─── STATS GRID ────────────────────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+@media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card:hover { box-shadow: var(--shadow); }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--stat-color, var(--c-primary));
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.stat-card.warning { --stat-color: var(--c-warning); }
+.stat-card.success { --stat-color: var(--c-success); }
+.stat-card.danger  { --stat-color: var(--c-danger); }
+.stat-card.accent  { --stat-color: var(--c-accent); }
+.stat-card.neutral { --stat-color: var(--c-ink4); }
+
+.stat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--c-ink3); }
+.stat-icon { font-size: 18px; opacity: .7; }
+
+.stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--c-ink);
+  line-height: 1;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.stat-value.warning { color: var(--c-warning); }
+.stat-value.success { color: var(--c-success); }
+.stat-value.danger  { color: var(--c-danger); }
+.stat-value.accent  { color: var(--c-accent); }
+.stat-value.primary { color: var(--c-primary); }
+
+.stat-sub { font-size: 11px; color: var(--c-ink4); margin-top: 3px; }
+
+/* ─── MAIN GRID ─────────────────────────────────────────────────────────────── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 14px;
+}
+@media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+.side-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ─── CARD ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface2);
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title-icon { font-size: 15px; }
+
+.card-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ─── BUTTONS ───────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  border: none; border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: -0.1px;
+}
+
+.btn-primary {
+  background: var(--c-primary);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) { background: var(--c-primary2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(27,79,216,.3); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--c-ink3);
+  border: 1px solid var(--c-border);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.btn-ghost:hover { color: var(--c-ink); border-color: var(--c-ink3); background: var(--c-surface2); }
+
+.btn-icon {
+  width: 32px; height: 32px; padding: 0;
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-ink3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.btn-icon:hover { background: var(--c-surface2); color: var(--c-ink); }
+
+.btn-loading .spin { display: block; }
+.btn-loading .btn-text { opacity: 0; }
+
+.spin {
+  display: none;
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  position: absolute;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-primary { position: relative; }
+
+/* ─── PIPELINE STEPS ────────────────────────────────────────────────────────── */
+.pipeline {
+  display: flex; align-items: center;
+  padding: 12px 18px;
+  background: var(--c-dark);
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  overflow-x: auto;
+}
+
+.pipe-step {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: all .4s;
+  flex-shrink: 0;
+}
+.pipe-icon { font-size: 14px; opacity: .4; }
+.pipe-label { font-size: 11px; color: rgba(255,255,255,.3); font-weight: 500; white-space: nowrap; }
+.pipe-step.active .pipe-icon { opacity: 1; }
+.pipe-step.active .pipe-label { color: #60A5FA; }
+.pipe-step.active { background: rgba(96,165,250,.1); }
+.pipe-step.done .pipe-icon { opacity: 1; }
+.pipe-step.done .pipe-label { color: #34D399; }
+.pipe-step.done { background: rgba(52,211,153,.08); }
+
+.pipe-arrow { color: rgba(255,255,255,.15); font-size: 11px; margin: 0 2px; flex-shrink: 0; }
+
+/* ─── TABLE ─────────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; max-height: 520px; overflow-y: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead { position: sticky; top: 0; z-index: 10; }
+thead th {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--c-ink3);
+  background: var(--c-surface2);
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--c-border2);
+  transition: background .12s;
+}
+tbody tr:hover { background: var(--c-primary-bg); }
+tbody tr:last-child { border-bottom: none; }
+
+tbody td {
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--c-ink2);
+  white-space: nowrap;
+}
+
+.td-num { font-family: var(--font-mono); font-size: 12px; color: var(--c-primary); font-weight: 600; }
+.td-amount { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--c-ink); }
+.td-pending { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--c-warning); }
+.td-muted { color: var(--c-ink4); font-size: 12px; }
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.badge-warn    { background: var(--c-warning-bg); color: var(--c-warning); }
+.badge-success { background: var(--c-success-bg); color: var(--c-success); }
+.badge-danger  { background: var(--c-danger-bg);  color: var(--c-danger);  }
+.badge-neutral { background: var(--c-border2);    color: var(--c-ink3);    }
+
+.empty-state {
+  padding: 56px 20px;
+  text-align: center;
+  color: var(--c-ink4);
+}
+.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: .5; }
+.empty-title { font-size: 14px; font-weight: 600; color: var(--c-ink3); margin-bottom: 4px; }
+.empty-sub   { font-size: 12px; }
+
+/* ─── TERMINAL ──────────────────────────────────────────────────────────────── */
+.terminal {
+  background: var(--c-dark);
+  height: 280px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+}
+
+.log-line {
+  display: flex; gap: 12px;
+  animation: fadein .2s ease;
+}
+@keyframes fadein { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; } }
+
+.log-time  { color: rgba(255,255,255,.2); min-width: 65px; flex-shrink: 0; }
+.log-msg   { flex: 1; color: rgba(255,255,255,.45); word-break: break-all; }
+.log-line.success .log-msg { color: #34D399; }
+.log-line.error   .log-msg { color: #F87171; }
+.log-line.warning .log-msg { color: #FBBF24; }
+.log-line.info    .log-msg { color: rgba(255,255,255,.55); }
+
+.terminal-cursor {
+  display: inline-block; width: 7px; height: 12px;
+  background: rgba(255,255,255,.4);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom; margin-left: 2px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ─── SCHEDULER ─────────────────────────────────────────────────────────────── */
+.sched-body { padding: 16px 18px; }
+
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.toggle-label { font-size: 13px; font-weight: 500; color: var(--c-ink2); }
+
+.toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--c-border);
+  border-radius: 100px;
+  transition: .3s;
+}
+.toggle input:checked + .toggle-track { background: var(--c-primary); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: .3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+
+.mode-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.mode-btn {
+  flex: 1; padding: 7px; text-align: center;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-ink3);
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+  font-family: var(--font);
+}
+.mode-btn:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.mode-btn.active { background: var(--c-primary-bg); border-color: var(--c-primary); color: var(--c-primary); font-weight: 600; }
+
+.sched-field { margin-bottom: 14px; }
+.field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--c-ink3); margin-bottom: 6px; }
+.field-row   { display: flex; gap: 8px; align-items: center; }
+
+.input {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-ink);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color .2s;
+}
+.input:focus { border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-bg); }
+.input[type="number"] { width: 90px; }
+.input[type="time"]   { width: 130px; }
+
+.sched-info {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.sched-info.active { background: rgba(27,79,216,.04); border-color: rgba(27,79,216,.2); }
+.sched-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.sched-row:last-child { margin-bottom: 0; }
+.sched-key { color: var(--c-ink3); }
+.sched-val { color: var(--c-ink2); font-weight: 500; }
+.sched-val.on { color: var(--c-primary); }
+.sched-val.hl { color: var(--c-primary); font-family: var(--font-mono); font-size: 11px; }
+
+/* ─── CHAT PAGE ─────────────────────────────────────────────────────────────── */
+.chat-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: calc(100vh - 130px);
+  min-height: 550px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+@media (max-width: 800px) { .chat-layout { grid-template-columns: 1fr; } }
+
+/* Sidebar */
+.chat-sidebar {
+  border-right: 1px solid var(--c-border);
+  background: var(--c-surface2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-sidebar-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--c-border);
+}
+.chat-sidebar-title { font-size: 15px; font-weight: 700; color: var(--c-ink); letter-spacing: -0.3px; }
+.chat-sidebar-sub   { font-size: 11px; color: var(--c-ink3); margin-top: 3px; }
+
+.chat-context { padding: 14px; overflow-y: auto; flex: 1; }
+.ctx-group { margin-bottom: 16px; }
+.ctx-heading {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: var(--c-ink4);
+  margin-bottom: 8px; padding: 0 2px;
+}
+.ctx-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.ctx-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--c-border2);
+  font-size: 12px;
+}
+.ctx-item:last-child { border-bottom: none; }
+.ctx-item-label { color: var(--c-ink3); }
+.ctx-item-value { font-weight: 600; color: var(--c-ink); font-family: var(--font-mono); font-size: 12px; }
+.ctx-item-value.warn { color: var(--c-warning); }
+.ctx-item-value.succ { color: var(--c-success); }
+.ctx-item-value.dang { color: var(--c-danger); }
+.ctx-item-value.prim { color: var(--c-primary); }
+
+.suggestions { padding: 0 14px 14px; }
+.sugg-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--c-ink4); margin-bottom: 8px; }
+.sugg-btn {
+  display: block; width: 100%;
+  text-align: left; padding: 9px 11px;
+  margin-bottom: 6px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-ink2);
+  font-size: 12px; line-height: 1.4;
+  cursor: pointer; transition: all .15s;
+  font-family: var(--font);
+}
+.sugg-btn:hover { background: var(--c-primary-bg); border-color: rgba(27,79,216,.3); color: var(--c-primary); }
+
+/* Chat main */
+.chat-main {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-top {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--c-border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--c-surface2);
+}
+.chat-top-title { font-size: 13px; font-weight: 600; color: var(--c-ink); display: flex; align-items: center; gap: 8px; }
+.ai-status { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--c-success); }
+.ai-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--c-success); }
+
+.messages {
+  flex: 1; overflow-y: auto;
+  padding: 20px 20px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+.msg { display: flex; flex-direction: column; max-width: 78%; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.msg.ai   { align-self: flex-start; align-items: flex-start; }
+
+.msg-label {
+  font-size: 11px; color: var(--c-ink4);
+  margin-bottom: 5px;
+  display: flex; align-items: center; gap: 5px;
+}
+.msg-avatar {
+  width: 20px; height: 20px;
+  background: var(--c-primary);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #fff; font-weight: 700;
+}
+
+.msg-bubble {
+  padding: 11px 15px;
+  border-radius: 10px;
+  font-size: 13px; line-height: 1.55;
+}
+.msg.user .msg-bubble {
+  background: var(--c-primary);
+  color: #fff;
+  border-radius: 10px 10px 2px 10px;
+}
+.msg.ai .msg-bubble {
+  background: var(--c-surface2);
+  color: var(--c-ink);
+  border: 1px solid var(--c-border);
+  border-radius: 10px 10px 10px 2px;
+}
+.msg-time { font-size: 10px; color: var(--c-ink4); margin-top: 4px; padding: 0 3px; }
+
+.typing-indicator {
+  display: flex; gap: 4px; align-items: center;
+  padding: 12px 15px;
+}
+.typing-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c-ink4);
+  animation: typing 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes typing {
+  0%, 60%, 100% { transform: scale(1); opacity: .4; }
+  30% { transform: scale(1.3); opacity: 1; }
+}
+
+/* Input */
+.chat-input-wrap {
+  padding: 14px 18px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.chat-input-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+.chat-textarea {
+  flex: 1;
+  background: var(--c-surface2);
+  border: 1.5px solid var(--c-border);
+  border-radius: 10px;
+  color: var(--c-ink);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 14px;
+  resize: none;
+  outline: none;
+  min-height: 42px; max-height: 120px;
+  line-height: 1.5;
+  transition: border-color .2s, box-shadow .2s;
+}
+.chat-textarea:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px var(--c-primary-bg);
+}
+.chat-textarea::placeholder { color: var(--c-ink4); }
+
+.btn-send {
+  width: 42px; height: 42px;
+  background: var(--c-primary);
+  border: none; border-radius: 10px;
+  color: #fff; font-size: 16px;
+  cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.btn-send:hover:not(:disabled) { background: var(--c-primary2); transform: translateY(-1px); }
+.btn-send:disabled { opacity: .4; cursor: not-allowed; }
+
+.chat-hint { font-size: 11px; color: var(--c-ink4); margin-top: 7px; }
+
+/* ─── UTILS ──────────────────────────────────────────────────────────────────── */
+.d-none { display: none !important; }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<header>
-  <div class="logo">
-    <div class="logo-mark">I</div>
-    <span class="logo-name">Invoice Agent</span>
-    <span class="logo-sub">Gemini AI + Gmail IMAP</span>
+<header class="header">
+  <div class="header-left">
+    <div class="logo-icon">📄</div>
+    <div class="logo-text">
+      <span class="logo-name">Invoice Agent</span>
+      <span class="logo-sub">Claude AI · Gmail IMAP · Google Sheets</span>
+    </div>
   </div>
   <div class="header-right">
-    <span id="upd">—</span>
-    <div class="ws-pill" id="ws-pill">
-      <div class="dot"></div>
-      <span id="ws-txt">Offline</span>
+    <span class="header-time" id="header-time">—</span>
+    <div class="ws-badge" id="ws-badge">
+      <div class="ws-dot"></div>
+      <span id="ws-label">Offline</span>
     </div>
   </div>
 </header>
 
-<!-- TABS -->
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('dashboard')">Facturas</button>
-  <button class="tab" onclick="switchTab('chat')">Consultar con IA</button>
-</div>
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-tab active" data-tab="tab-facturas" onclick="switchTab('tab-facturas', this)">
+    <span class="tab-icon">📊</span> Facturas
+  </button>
+  <button class="nav-tab" data-tab="tab-chat" onclick="switchTab('tab-chat', this)">
+    <span class="tab-icon">💬</span> Consultar con IA
+  </button>
+</nav>
 
-<!-- TAB: DASHBOARD -->
-<div class="tab-view active" id="tab-dashboard">
-<div class="wrap">
+<!-- ═══════════════════════════ FACTURAS ═══════════════════════════ -->
+<div class="page active" id="tab-facturas">
+<div class="container">
 
   <!-- STATS -->
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-lbl">Total Facturas</div>
-      <div class="stat-val" id="s-total">—</div>
-      <div class="stat-sub">registros</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-label">Total</span>
+        <span class="stat-icon">🗂</span>
+      </div>
+      <div class="stat-value primary" id="s-total">—</div>
+      <div class="stat-sub">facturas registradas</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Pendientes</div>
-      <div class="stat-val cw" id="s-pend">—</div>
+    <div class="stat-card warning">
+      <div class="stat-header">
+        <span class="stat-label">Pendientes</span>
+        <span class="stat-icon">⏳</span>
+      </div>
+      <div class="stat-value warning" id="s-pend">—</div>
       <div class="stat-sub">por pagar</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Pagadas</div>
-      <div class="stat-val cg" id="s-pag">—</div>
+    <div class="stat-card success">
+      <div class="stat-header">
+        <span class="stat-label">Pagadas</span>
+        <span class="stat-icon">✅</span>
+      </div>
+      <div class="stat-value success" id="s-pag">—</div>
       <div class="stat-sub">completadas</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Vencidas</div>
-      <div class="stat-val cr" id="s-venc">—</div>
+    <div class="stat-card danger">
+      <div class="stat-header">
+        <span class="stat-label">Vencidas</span>
+        <span class="stat-icon">🚨</span>
+      </div>
+      <div class="stat-value danger" id="s-venc">—</div>
       <div class="stat-sub">requieren atención</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Total COP</div>
-      <div class="stat-val cm" id="s-cop" style="font-size:20px">—</div>
+    <div class="stat-card accent">
+      <div class="stat-header">
+        <span class="stat-label">Total COP</span>
+        <span class="stat-icon">🇨🇴</span>
+      </div>
+      <div class="stat-value accent" id="s-cop" style="font-size:20px;letter-spacing:-0.5px">—</div>
       <div class="stat-sub">pesos colombianos</div>
     </div>
-    <div class="stat">
-      <div class="stat-lbl">Total USD</div>
-      <div class="stat-val" id="s-usd" style="font-size:20px">—</div>
+    <div class="stat-card neutral">
+      <div class="stat-header">
+        <span class="stat-label">Total USD</span>
+        <span class="stat-icon">💵</span>
+      </div>
+      <div class="stat-value" id="s-usd" style="font-size:20px;letter-spacing:-0.5px">—</div>
       <div class="stat-sub">dólares</div>
     </div>
   </div>
 
-  <!-- GRID -->
-  <div class="grid">
+  <!-- MAIN GRID -->
+  <div class="main-grid">
 
     <!-- TABLA -->
-    <div class="panel">
-      <div class="ph">
-        <span class="pt">Facturas Recientes</span>
-        <button class="btn" id="btn-proc" onclick="triggerProcess()">
-          <div class="spinner"></div>
-          <span class="bicon">▶</span>
-          <span id="btn-lbl">Procesar Emails</span>
-        </button>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><span class="card-title-icon">📋</span> Facturas Recientes</span>
+        <div class="card-actions">
+          <button class="btn-ghost" onclick="exportExcel()" title="Exportar Excel">⬇ Excel</button>
+          <button class="btn btn-primary" id="btn-process" onclick="triggerProcess()">
+            <div class="spin"></div>
+            <span class="btn-text">▶ Procesar Emails</span>
+          </button>
+        </div>
       </div>
+
       <!-- PIPELINE -->
       <div class="pipeline">
-        <div class="ps" id="ps0"><div class="pi">📧</div><div class="pl">IMAP</div></div>
-        <div class="pa"></div>
-        <div class="ps" id="ps1"><div class="pi">🔍</div><div class="pl">Búsqueda</div></div>
-        <div class="pa"></div>
-        <div class="ps" id="ps2"><div class="pi">🤖</div><div class="pl">Gemini</div></div>
-        <div class="pa"></div>
-        <div class="ps" id="ps3"><div class="pi">◈</div><div class="pl">Extracción</div></div>
-        <div class="pa"></div>
-        <div class="ps" id="ps4"><div class="pi">📊</div><div class="pl">Excel</div></div>
+        <div class="pipe-step" id="ps0"><span class="pipe-icon">📧</span><span class="pipe-label">IMAP</span></div>
+        <span class="pipe-arrow">›</span>
+        <div class="pipe-step" id="ps1"><span class="pipe-icon">🔍</span><span class="pipe-label">Búsqueda</span></div>
+        <span class="pipe-arrow">›</span>
+        <div class="pipe-step" id="ps2"><span class="pipe-icon">🤖</span><span class="pipe-label">Claude AI</span></div>
+        <span class="pipe-arrow">›</span>
+        <div class="pipe-step" id="ps3"><span class="pipe-icon">⚙️</span><span class="pipe-label">Extracción</span></div>
+        <span class="pipe-arrow">›</span>
+        <div class="pipe-step" id="ps4"><span class="pipe-icon">📊</span><span class="pipe-label">Sheets</span></div>
       </div>
-      <div class="tw">
+
+      <div class="table-wrap">
         <table>
           <thead>
-            <tr id="thead-row">
-              <th>Mes</th><th>N° Factura</th><th>Proveedor</th>
-              <th>Cliente</th><th>Subtotal</th><th>IVA</th>
-              <th>Valor Total</th><th>Estado</th><th>Por Pagar</th>
+            <tr>
+              <th>Mes</th>
+              <th>N° Factura</th>
+              <th>Proveedor</th>
+              <th>Cliente</th>
+              <th>Subtotal</th>
+              <th>IVA</th>
+              <th>Valor Total</th>
+              <th>Estado</th>
+              <th>Por Pagar</th>
             </tr>
           </thead>
-          <tbody id="tbody">
-            <tr><td colspan="9"><div class="empty">Cargando facturas...</div></td></tr>
+          <tbody id="invoice-tbody">
+            <tr><td colspan="9">
+              <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-title">Cargando facturas...</div>
+              </div>
+            </td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- DERECHA: TERMINAL + SCHEDULER -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
+    <!-- COLUMNA LATERAL -->
+    <div class="side-col">
 
       <!-- TERMINAL -->
-      <div class="panel">
-        <div class="ph">
-          <span class="pt">Terminal</span>
-          <button class="btn-ghost" onclick="clearTerminal()">Limpiar</button>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">🖥</span> Terminal</span>
+          <button class="btn-ghost" onclick="clearTerm()">Limpiar</button>
         </div>
-        <div class="terminal" id="term">
-          <div class="ll info">
-            <span class="lt">--:--:--</span>
-            <span class="lm">Sistema listo. Conectando...<span class="cursor"></span></span>
+        <div class="terminal" id="terminal">
+          <div class="log-line info">
+            <span class="log-time">--:--:--</span>
+            <span class="log-msg">Sistema iniciado. Conectando...<span class="terminal-cursor"></span></span>
           </div>
         </div>
       </div>
 
       <!-- SCHEDULER -->
-      <div class="panel">
-        <div class="ph">
-          <span class="pt">Scheduler</span>
-          <label class="toggle" title="Activar/desactivar">
-            <input type="checkbox" id="sched-toggle" onchange="toggleScheduler()"/>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><span class="card-title-icon">⏱</span> Automatización</span>
+          <label class="toggle">
+            <input type="checkbox" id="sched-toggle" onchange="onSchedulerToggle()"/>
             <div class="toggle-track"></div>
             <div class="toggle-thumb"></div>
           </label>
         </div>
-        <div class="sched-panel">
-          <div class="sched-modes">
-            <button class="mode-btn sel" id="mode-interval" onclick="selectMode('interval')">Cada X min</button>
-            <button class="mode-btn" id="mode-daily" onclick="selectMode('daily')">Hora fija</button>
+        <div class="sched-body">
+          <div class="mode-tabs">
+            <button class="mode-btn active" id="m-interval" onclick="setMode('interval')">Cada X min</button>
+            <button class="mode-btn"        id="m-daily"    onclick="setMode('daily')">Hora fija</button>
           </div>
-          <div id="fields-interval" class="sched-field">
-            <div class="field-lbl">Intervalo (minutos)</div>
+          <div id="f-interval" class="sched-field">
+            <div class="field-label">Intervalo (minutos)</div>
             <div class="field-row">
-              <input type="number" class="sched-input" id="inp-interval" value="30" min="5" max="1440"/>
-              <button class="btn-apply" onclick="applyScheduler()">Aplicar</button>
+              <input type="number" class="input" id="inp-interval" value="30" min="5" max="1440"/>
+              <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" onclick="applyScheduler()">Aplicar</button>
             </div>
           </div>
-          <div id="fields-daily" class="sched-field" style="display:none;">
-            <div class="field-lbl">Hora diaria</div>
+          <div id="f-daily" class="sched-field d-none">
+            <div class="field-label">Hora diaria</div>
             <div class="field-row">
-              <input type="time" class="sched-input" id="inp-time" value="08:00"/>
-              <button class="btn-apply" onclick="applyScheduler()">Aplicar</button>
+              <input type="time" class="input" id="inp-time" value="08:00"/>
+              <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" onclick="applyScheduler()">Aplicar</button>
             </div>
           </div>
-          <div class="sched-info" id="sched-status">
-            <div class="si-row"><span>Estado</span><span class="si-val" id="ss-estado">Inactivo</span></div>
-            <div class="si-row"><span>Próxima</span><span class="si-val hl" id="ss-next">—</span></div>
-            <div class="si-row"><span>Última</span><span class="si-val" id="ss-last">—</span></div>
+          <div class="sched-info" id="sched-info">
+            <div class="sched-row"><span class="sched-key">Estado</span><span class="sched-val" id="ss-status">Inactivo</span></div>
+            <div class="sched-row"><span class="sched-key">Próxima</span><span class="sched-val hl" id="ss-next">—</span></div>
+            <div class="sched-row"><span class="sched-key">Última</span><span class="sched-val" id="ss-last">—</span></div>
           </div>
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-</div>
+    </div><!-- /side-col -->
+  </div><!-- /main-grid -->
 
-<!-- TAB: CHAT -->
-<div class="tab-view" id="tab-chat">
-<div class="wrap">
-  <div class="chat-wrap">
+</div>
+</div>
+<!-- /tab-facturas -->
+
+<!-- ═══════════════════════════ CHAT ═══════════════════════════ -->
+<div class="page" id="tab-chat">
+<div class="container">
+  <div class="chat-layout">
 
     <!-- SIDEBAR -->
     <div class="chat-sidebar">
       <div class="chat-sidebar-header">
-        <div class="chat-sidebar-title">Asistente de Facturas</div>
-        <div class="chat-sidebar-sub">Consulta datos · Analiza tendencias</div>
+        <div class="chat-sidebar-title">Asistente IA</div>
+        <div class="chat-sidebar-sub">Analiza tus facturas en lenguaje natural</div>
       </div>
+
       <div class="chat-context">
-        <div class="ctx-section">
-          <div class="ctx-title">Contexto actual</div>
+        <div class="ctx-group">
+          <div class="ctx-heading">Contexto actual</div>
           <div class="ctx-card">
-            <div class="ctx-row">
-              <span class="ctx-label">Total facturas</span>
-              <span class="ctx-value" id="c-total">—</span>
+            <div class="ctx-item">
+              <span class="ctx-item-label">Total facturas</span>
+              <span class="ctx-item-value prim" id="c-total">—</span>
             </div>
-            <div class="ctx-row">
-              <span class="ctx-label">Pendientes</span>
-              <span class="ctx-value cw" id="c-pend">—</span>
+            <div class="ctx-item">
+              <span class="ctx-item-label">Pendientes</span>
+              <span class="ctx-item-value warn" id="c-pend">—</span>
             </div>
-            <div class="ctx-row">
-              <span class="ctx-label">Pagadas</span>
-              <span class="ctx-value cg" id="c-pag">—</span>
+            <div class="ctx-item">
+              <span class="ctx-item-label">Pagadas</span>
+              <span class="ctx-item-value succ" id="c-pag">—</span>
             </div>
-            <div class="ctx-row">
-              <span class="ctx-label">Vencidas</span>
-              <span class="ctx-value cr" id="c-venc">—</span>
+            <div class="ctx-item">
+              <span class="ctx-item-label">Vencidas</span>
+              <span class="ctx-item-value dang" id="c-venc">—</span>
             </div>
-            <div class="ctx-row">
-              <span class="ctx-label">Total COP</span>
-              <span class="ctx-value cm" id="c-cop">—</span>
+            <div class="ctx-item">
+              <span class="ctx-item-label">Total COP</span>
+              <span class="ctx-item-value prim" id="c-cop">—</span>
             </div>
           </div>
         </div>
       </div>
-      <div class="chat-suggestions">
-        <div class="sug-title">Preguntas sugeridas</div>
-        <button class="sug-btn" onclick="sendSuggestion(this)">¿Cuáles son las facturas vencidas?</button>
-        <button class="sug-btn" onclick="sendSuggestion(this)">¿Qué proveedor tiene mayor deuda pendiente?</button>
-        <button class="sug-btn" onclick="sendSuggestion(this)">Resume el estado financiero actual</button>
-        <button class="sug-btn" onclick="sendSuggestion(this)">¿Qué facturas vencen este mes?</button>
-        <button class="sug-btn" onclick="sendSuggestion(this)">¿Cuál es el total por pagar en COP?</button>
+
+      <div class="suggestions">
+        <div class="sugg-label">Sugerencias</div>
+        <button class="sugg-btn" onclick="useSuggestion(this)">¿Cuáles facturas están vencidas?</button>
+        <button class="sugg-btn" onclick="useSuggestion(this)">¿Qué proveedor tiene mayor deuda?</button>
+        <button class="sugg-btn" onclick="useSuggestion(this)">Resume el estado financiero</button>
+        <button class="sugg-btn" onclick="useSuggestion(this)">¿Cuánto debo pagar este mes?</button>
+        <button class="sugg-btn" onclick="useSuggestion(this)">¿Cuál es el total por pagar en COP?</button>
       </div>
     </div>
 
-    <!-- CHAT MAIN -->
+    <!-- MAIN CHAT -->
     <div class="chat-main">
-      <div class="chat-messages" id="chat-messages">
-        <div class="msg ai">
-          <div class="msg-ai-label">
-            <div class="ai-avatar">I</div>
-            Invoice Agent
-          </div>
-          <div class="msg-bubble">
-            Hola. Soy el asistente de análisis de facturas. Puedo ayudarte a consultar el estado de tus facturas, identificar proveedores con deuda pendiente, analizar tendencias de pago y responder cualquier pregunta sobre tus datos financieros.<br><br>
-            ¿En qué puedo ayudarte hoy?
-          </div>
-          <div class="msg-meta">Invoice Agent · ahora</div>
+      <div class="chat-top">
+        <div class="chat-top-title">
+          <div class="msg-avatar">IA</div>
+          Invoice Agent · Claude Haiku
+        </div>
+        <div class="ai-status">
+          <div class="ai-status-dot"></div>
+          Disponible
         </div>
       </div>
-      <div class="chat-input-area">
+
+      <div class="messages" id="chat-messages">
+        <div class="msg ai">
+          <div class="msg-label"><div class="msg-avatar">IA</div> Invoice Agent</div>
+          <div class="msg-bubble">
+            Hola 👋 Soy tu asistente financiero inteligente.<br><br>
+            Puedo ayudarte a analizar el estado de tus facturas, identificar pagos pendientes, detectar vencimientos y responder preguntas sobre tus datos financieros.<br><br>
+            ¿En qué te puedo ayudar hoy?
+          </div>
+          <div class="msg-time">ahora</div>
+        </div>
+      </div>
+
+      <div class="chat-input-wrap">
         <div class="chat-input-row">
           <textarea
-            class="chat-textarea"
             id="chat-input"
+            class="chat-textarea"
             placeholder="Escribe tu consulta sobre las facturas..."
             rows="1"
-            onkeydown="handleChatKey(event)"
+            onkeydown="onChatKey(event)"
             oninput="autoResize(this)"
           ></textarea>
-          <button class="btn-send" id="btn-send" onclick="sendChat()" title="Enviar">➤</button>
+          <button class="btn-send" id="btn-send" onclick="sendMessage()" title="Enviar">➤</button>
         </div>
-        <div class="chat-hint">Enter para enviar · Shift+Enter para nueva línea</div>
+        <div class="chat-hint">Enter para enviar &nbsp;·&nbsp; Shift + Enter para nueva línea</div>
       </div>
     </div>
 
   </div>
 </div>
 </div>
+<!-- /tab-chat -->
 
 <script>
-const BASE = window.location.origin;
-const WS   = BASE.replace(/^https/,'wss').replace(/^http/,'ws');
-let ws=null, reconnN=0, reconnTmr=null, processing=false, currentMode='interval';
-let chatHistory = [];
-let statsCache = {};
+/* ──────────────────────────────────────────────────────────────────
+   ESTADO GLOBAL
+─────────────────────────────────────────────────────────────────── */
+const BASE  = window.location.origin;
+const WS_URL = BASE.replace(/^https/, 'wss').replace(/^http/, 'ws');
 
-// ── FORMATO ───────────────────────────────────────────────────────────────
-const fmtN = (n,d=0) => {
-  if(n==null||n===''||n==='N/A') return '—';
-  const v = parseFloat(String(n).replace(/[^0-9.-]/g,''));
-  if(isNaN(v)) return String(n);
-  return new Intl.NumberFormat('es-CO',{minimumFractionDigits:d,maximumFractionDigits:d}).format(v);
+let wsConn     = null;
+let wsReconns  = 0;
+let wsTimer    = null;
+let isProcessing = false;
+let chatHistory  = [];
+let statsCache   = {};
+let schedMode    = 'interval';
+
+/* ──────────────────────────────────────────────────────────────────
+   UTILIDADES
+─────────────────────────────────────────────────────────────────── */
+const esc  = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const now  = () => new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+const nowT = () => new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+
+const fmtNum = (n, dec = 0) => {
+  if (n == null || n === '' || n === 'N/A') return '—';
+  const v = parseFloat(String(n).replace(/[^0-9.-]/g, ''));
+  if (isNaN(v)) return String(n);
+  return new Intl.NumberFormat('es-CO', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
 };
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const now = () => new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 
-// ── TABS ──────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  event.target.classList.add('active');
-  if(tab === 'chat') updateChatContext();
+/* Actualizar reloj del header */
+setInterval(() => {
+  document.getElementById('header-time').textContent =
+    new Date().toLocaleString('es-CO', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}, 1000);
+
+/* ──────────────────────────────────────────────────────────────────
+   TABS
+─────────────────────────────────────────────────────────────────── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'tab-chat') syncChatContext();
 }
 
-// ── STATS ──────────────────────────────────────────────────────────────────
-async function loadStats() {
+/* ──────────────────────────────────────────────────────────────────
+   STATS
+─────────────────────────────────────────────────────────────────── */
+async function fetchStats() {
   try {
     const r = await fetch(`${BASE}/api/stats`);
-    if(!r.ok) throw new Error(r.status);
+    if (!r.ok) return;
     const d = await r.json();
     statsCache = d;
-    document.getElementById('s-total').textContent = d.total      ?? '0';
+    document.getElementById('s-total').textContent = d.total ?? '0';
     document.getElementById('s-pend').textContent  = d.pendientes ?? '0';
-    document.getElementById('s-pag').textContent   = d.pagadas    ?? '0';
-    document.getElementById('s-venc').textContent  = d.vencidas   ?? '0';
-    document.getElementById('s-cop').textContent   = '$' + fmtN(d.total_cop);
-    document.getElementById('s-usd').textContent   = '$' + fmtN(d.total_usd,2);
-    document.getElementById('upd').textContent     = `Actualizado ${now()}`;
-    updateChatContext();
-  } catch(e) { console.warn('stats:',e); }
+    document.getElementById('s-pag').textContent   = d.pagadas ?? '0';
+    document.getElementById('s-venc').textContent  = d.vencidas ?? '0';
+    document.getElementById('s-cop').textContent   = '$' + fmtNum(d.total_cop);
+    document.getElementById('s-usd').textContent   = '$' + fmtNum(d.total_usd, 2);
+    syncChatContext();
+  } catch (e) { console.warn('stats', e); }
 }
 
-function updateChatContext() {
+function syncChatContext() {
   const d = statsCache;
-  if(!d.total && d.total !== 0) return;
-  document.getElementById('c-total').textContent = d.total      ?? '—';
+  document.getElementById('c-total').textContent = d.total ?? '—';
   document.getElementById('c-pend').textContent  = d.pendientes ?? '—';
-  document.getElementById('c-pag').textContent   = d.pagadas    ?? '—';
-  document.getElementById('c-venc').textContent  = d.vencidas   ?? '—';
-  document.getElementById('c-cop').textContent   = '$' + fmtN(d.total_cop);
+  document.getElementById('c-pag').textContent   = d.pagadas ?? '—';
+  document.getElementById('c-venc').textContent  = d.vencidas ?? '—';
+  document.getElementById('c-cop').textContent   = d.total_cop != null ? '$' + fmtNum(d.total_cop) : '—';
 }
 
-// ── FACTURAS ───────────────────────────────────────────────────────────────
-async function loadInvoices() {
+/* ──────────────────────────────────────────────────────────────────
+   FACTURAS
+─────────────────────────────────────────────────────────────────── */
+async function fetchInvoices() {
   try {
-    const r = await fetch(`${BASE}/api/invoices?limit=30`);
+    const r = await fetch(`${BASE}/api/invoices?limit=40`);
     const d = await r.json();
-    renderTable(d.invoices || []);
-  } catch { renderTable([]); }
+    renderInvoices(d.invoices || []);
+  } catch { renderInvoices([]); }
 }
 
-function col(keys, kws) {
+function colFind(keys, words) {
   return keys.find(k =>
-    kws.some(w => k.toLowerCase().replace(/[\s\|°ñ]/g,'')
-      .includes(w.toLowerCase().replace(/[\s\|°ñ]/g,'')))
+    words.some(w => k.toLowerCase().replace(/[\s°ñ]/g,'')
+      .includes(w.toLowerCase().replace(/[\s°ñ]/g,'')))
   ) || '';
 }
 
-function renderTable(rows) {
-  const tb = document.getElementById('tbody');
-  if(!rows.length) {
-    tb.innerHTML = `<tr><td colspan="9"><div class="empty">Sin facturas registradas. Ejecuta "Procesar Emails" para comenzar.</div></td></tr>`;
+function statusBadge(val) {
+  const s = (val || '').toUpperCase();
+  if (s === 'PENDIENTE') return `<span class="badge badge-warn">● ${s}</span>`;
+  if (s === 'PAGADA')    return `<span class="badge badge-success">● ${s}</span>`;
+  if (s === 'VENCIDA')   return `<span class="badge badge-danger">● ${s}</span>`;
+  return `<span class="badge badge-neutral">${esc(s) || '—'}</span>`;
+}
+
+function renderInvoices(rows) {
+  const tb = document.getElementById('invoice-tbody');
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="9">
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">Sin facturas registradas</div>
+        <div class="empty-sub">Haz clic en "Procesar Emails" para comenzar</div>
+      </div>
+    </td></tr>`;
     return;
   }
   const keys = Object.keys(rows[0]);
-  const cMes   = col(keys,['mesfecha','mes']);
-  const cNum   = col(keys,['facturanumero','facturanúmero','nfactura','número','factura']);
-  const cProv  = col(keys,['proveedor','emisor','empresa']);
-  const cClien = col(keys,['cliente']);
-  const cSub   = col(keys,['subtotal']);
-  const cIva   = col(keys,['iva']);
-  const cTotal = col(keys,['valortotal','valor total','total']);
-  const cEst   = col(keys,['estado','status']);
-  const cPagar = col(keys,['valorporpagar','porpagar','valor por pagar']);
+  const cMes    = colFind(keys, ['mes']);
+  const cNum    = colFind(keys, ['facturanumero','nfactura','número factura','factura']);
+  const cProv   = colFind(keys, ['proveedor','emisor']);
+  const cClient = colFind(keys, ['cliente']);
+  const cSub    = colFind(keys, ['subtotal']);
+  const cIva    = colFind(keys, ['iva']);
+  const cTotal  = colFind(keys, ['valortotal','valor total','total']);
+  const cEst    = colFind(keys, ['estado','status']);
+  const cPagar  = colFind(keys, ['valorporpagar','por pagar']);
 
-  const badge = e => {
-    const s=(e||'').toString().toUpperCase();
-    return s==='PENDIENTE'?`<span class="badge bp">${s}</span>`:
-           s==='PAGADA'   ?`<span class="badge bg">${s}</span>`:
-           s==='VENCIDA'  ?`<span class="badge br">${s}</span>`:
-                           `<span class="badge bd">${esc(s)||'—'}</span>`;
-  };
-
-  tb.innerHTML = rows.map(r=>`<tr>
-    <td>${esc(r[cMes]||'—')}</td>
-    <td style="color:var(--accent);font-weight:500;font-family:var(--mono)">${esc(r[cNum]||'—')}</td>
-    <td>${esc(r[cProv]||'—')}</td>
-    <td style="color:var(--ink3)">${esc(r[cClien]||'—')}</td>
-    <td>${fmtN(r[cSub])}</td>
-    <td>${fmtN(r[cIva])}</td>
-    <td style="font-weight:500;color:var(--accent)">${fmtN(r[cTotal])}</td>
-    <td>${badge(r[cEst])}</td>
-    <td style="color:var(--warning);font-weight:500">${fmtN(r[cPagar])}</td>
+  tb.innerHTML = rows.map(r => `<tr>
+    <td class="td-muted">${esc(r[cMes] || '—')}</td>
+    <td class="td-num">${esc(r[cNum] || '—')}</td>
+    <td>${esc(r[cProv] || '—')}</td>
+    <td class="td-muted">${esc(r[cClient] || '—')}</td>
+    <td class="td-amount">${fmtNum(r[cSub])}</td>
+    <td class="td-muted">${fmtNum(r[cIva])}</td>
+    <td class="td-amount">${fmtNum(r[cTotal])}</td>
+    <td>${statusBadge(r[cEst])}</td>
+    <td class="td-pending">${fmtNum(r[cPagar])}</td>
   </tr>`).join('');
 }
 
-// ── TERMINAL ───────────────────────────────────────────────────────────────
-function log(msg,level,time) {
-  if(!msg||!msg.trim()) return;
-  const t = document.getElementById('term');
-  const d = document.createElement('div');
-  d.className = `ll ${level||'info'}`;
-  d.innerHTML = `<span class="lt">${time||now()}</span><span class="lm">${esc(msg)}</span>`;
-  t.appendChild(d);
-  t.scrollTop = t.scrollHeight;
-}
-async function clearTerminal() {
-  document.getElementById('term').innerHTML =
-    `<div class="ll info"><span class="lt">${now()}</span><span class="lm">Terminal limpiado<span class="cursor"></span></span></div>`;
-  try { await fetch(`${BASE}/api/logs`,{method:'DELETE'}); } catch {}
+/* ──────────────────────────────────────────────────────────────────
+   TERMINAL
+─────────────────────────────────────────────────────────────────── */
+function addLog(msg, level = 'info', ts = null) {
+  if (!msg?.trim()) return;
+  const term = document.getElementById('terminal');
+  const el = document.createElement('div');
+  el.className = `log-line ${level}`;
+  el.innerHTML = `<span class="log-time">${ts || now()}</span><span class="log-msg">${esc(msg)}</span>`;
+  term.appendChild(el);
+  term.scrollTop = term.scrollHeight;
 }
 
-// ── PIPELINE ───────────────────────────────────────────────────────────────
-const PIPE=[
-  ['ps0',['imap','conectando','connect']],
-  ['ps1',['buscando','correos','encontrados']],
-  ['ps2',['ia','gemini','analizando']],
-  ['ps3',['factura','extraccion','guardada']],
-  ['ps4',['excel','completado','exitosamente']],
+async function clearTerm() {
+  const term = document.getElementById('terminal');
+  term.innerHTML = `<div class="log-line info">
+    <span class="log-time">${now()}</span>
+    <span class="log-msg">Terminal limpiado<span class="terminal-cursor"></span></span>
+  </div>`;
+  try { await fetch(`${BASE}/api/logs`, { method: 'DELETE' }); } catch {}
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   PIPELINE
+─────────────────────────────────────────────────────────────────── */
+const PIPE_MAP = [
+  ['ps0', ['imap','conectando','connect','gmail']],
+  ['ps1', ['buscando','correos','encontrados','analizar']],
+  ['ps2', ['ia','claude','analizando','inteligencia']],
+  ['ps3', ['factura','extraccion','extracción','guardada']],
+  ['ps4', ['completado','sheets','excel','exitosamente']],
 ];
-function setPipe(msg) {
-  const m=msg.toLowerCase(); let idx=-1;
-  PIPE.forEach(([,kws],i)=>{ if(kws.some(k=>m.includes(k))) idx=i; });
-  if(idx<0) return;
-  PIPE.forEach(([id],i)=>{ const e=document.getElementById(id); if(e) e.className='ps'+(i<idx?' done':i===idx?' active':''); });
-}
-function resetPipe() { PIPE.forEach(([id])=>{ const e=document.getElementById(id); if(e) e.className='ps'; }); }
 
-// ── PROCESAR ───────────────────────────────────────────────────────────────
+function updatePipeline(msg) {
+  const m = msg.toLowerCase();
+  let active = -1;
+  PIPE_MAP.forEach(([, kws], i) => { if (kws.some(k => m.includes(k))) active = i; });
+  if (active < 0) return;
+  PIPE_MAP.forEach(([id], i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'pipe-step' + (i < active ? ' done' : i === active ? ' active' : '');
+  });
+}
+
+function resetPipeline() {
+  PIPE_MAP.forEach(([id]) => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'pipe-step';
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   PROCESAR
+─────────────────────────────────────────────────────────────────── */
 async function triggerProcess() {
-  if(processing) return;
-  processing=true;
-  const btn=document.getElementById('btn-proc');
-  const lbl=document.getElementById('btn-lbl');
-  btn.disabled=true; btn.classList.add('loading');
-  lbl.textContent='Procesando...';
-  resetPipe();
-  log('Iniciando procesamiento de emails...','info');
+  if (isProcessing) return;
+  isProcessing = true;
+  resetPipeline();
+
+  const btn = document.getElementById('btn-process');
+  btn.disabled = true;
+  btn.classList.add('btn-loading');
+  btn.querySelector('.btn-text').textContent = ' Procesando...';
+
+  addLog('Iniciando procesamiento de emails...', 'info');
+
   try {
-    const r=await fetch(`${BASE}/api/process`,{method:'POST'});
-    const d=await r.json();
-    if(d.status==='ya_ejecutando'){
-      log(d.message,'warning');
-      processing=false; btn.disabled=false; btn.classList.remove('loading'); lbl.textContent='Procesar Emails';
-      return;
+    const r = await fetch(`${BASE}/api/process`, { method: 'POST' });
+    const d = await r.json();
+    if (d.status === 'ya_ejecutando') {
+      addLog(d.message, 'warning');
     }
-    log('Agente iniciado — procesando 20 correos recientes','success');
-    setTimeout(()=>{ loadStats(); loadInvoices(); },12000);
-    setTimeout(()=>{
-      processing=false; btn.disabled=false; btn.classList.remove('loading'); lbl.textContent='Procesar Emails';
-      loadStats(); loadInvoices();
-    },45000);
-  } catch(e) {
-    log(`Error: ${e.message}`,'error');
-    processing=false; btn.disabled=false; btn.classList.remove('loading'); lbl.textContent='Procesar Emails';
+  } catch (e) {
+    addLog(`Error: ${e.message}`, 'error');
+  }
+
+  setTimeout(() => { fetchStats(); fetchInvoices(); }, 10000);
+  setTimeout(() => {
+    isProcessing = false;
+    btn.disabled = false;
+    btn.classList.remove('btn-loading');
+    btn.querySelector('.btn-text').textContent = '▶ Procesar Emails';
+    fetchStats(); fetchInvoices();
+  }, 45000);
+}
+
+async function exportExcel() {
+  addLog('Generando Excel...', 'info');
+  try {
+    const r = await fetch(`${BASE}/api/export-excel`, { method: 'POST' });
+    if (r.ok) {
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'facturas.xlsx'; a.click();
+      URL.revokeObjectURL(url);
+      addLog('Excel descargado correctamente', 'success');
+    }
+  } catch (e) { addLog(`Error exportando: ${e.message}`, 'error'); }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SCHEDULER
+─────────────────────────────────────────────────────────────────── */
+function setMode(mode) {
+  schedMode = mode;
+  document.getElementById('m-interval').className = 'mode-btn' + (mode === 'interval' ? ' active' : '');
+  document.getElementById('m-daily').className    = 'mode-btn' + (mode === 'daily'    ? ' active' : '');
+  document.getElementById('f-interval').classList.toggle('d-none', mode !== 'interval');
+  document.getElementById('f-daily').classList.toggle('d-none',    mode !== 'daily');
+}
+
+async function onSchedulerToggle() {
+  const on = document.getElementById('sched-toggle').checked;
+  if (on) { await applyScheduler(); }
+  else {
+    await fetch(`${BASE}/api/scheduler`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: false })
+    });
+    addLog('Scheduler desactivado', 'warning');
+    updateSchedUI({ enabled: false, next_run: null, last_run: null });
   }
 }
 
-// ── SCHEDULER ──────────────────────────────────────────────────────────────
-function selectMode(mode) {
-  currentMode=mode;
-  document.getElementById('mode-interval').className='mode-btn'+(mode==='interval'?' sel':'');
-  document.getElementById('mode-daily').className='mode-btn'+(mode==='daily'?' sel':'');
-  document.getElementById('fields-interval').style.display=mode==='interval'?'':'none';
-  document.getElementById('fields-daily').style.display=mode==='daily'?'':'none';
-}
-async function toggleScheduler() {
-  const enabled=document.getElementById('sched-toggle').checked;
-  if(enabled){ await applyScheduler(); }
-  else {
-    await fetch(`${BASE}/api/scheduler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:false})});
-    log('Scheduler desactivado','warning');
-    updateSchedUI({enabled:false,next_run:null,last_run:null});
-  }
-}
 async function applyScheduler() {
-  document.getElementById('sched-toggle').checked=true;
-  const config={enabled:true,mode:currentMode,
-    interval_minutes:parseInt(document.getElementById('inp-interval').value)||30,
-    daily_time:document.getElementById('inp-time').value||'08:00'};
+  document.getElementById('sched-toggle').checked = true;
+  const cfg = {
+    enabled: true,
+    mode: schedMode,
+    interval_minutes: parseInt(document.getElementById('inp-interval').value) || 30,
+    daily_time: document.getElementById('inp-time').value || '08:00',
+  };
   try {
-    const r=await fetch(`${BASE}/api/scheduler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});
-    const d=await r.json();
-    log(d.message||'Scheduler actualizado','success');
+    const r = await fetch(`${BASE}/api/scheduler`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg)
+    });
+    const d = await r.json();
+    addLog(d.mode === 'interval'
+      ? `Scheduler: cada ${d.interval_minutes} minutos`
+      : `Scheduler: diario a las ${d.daily_time}`, 'success');
     updateSchedUI(d);
-  } catch(e){ log(`Error scheduler: ${e.message}`,'error'); }
+  } catch (e) { addLog(`Error scheduler: ${e.message}`, 'error'); }
 }
-function updateSchedUI(state) {
-  const box=document.getElementById('sched-status');
-  const el=document.getElementById('ss-estado');
-  box.className='sched-info'+(state.enabled?' on':'');
-  el.textContent=state.enabled?'Activo':'Inactivo';
-  el.style.color=state.enabled?'var(--warm)':'var(--ink3)';
-  document.getElementById('ss-next').textContent=state.next_run||'—';
-  document.getElementById('ss-last').textContent=state.last_run||'—';
+
+function updateSchedUI(s) {
+  const info = document.getElementById('sched-info');
+  info.className = 'sched-info' + (s.enabled ? ' active' : '');
+  const status = document.getElementById('ss-status');
+  status.textContent = s.enabled ? 'Activo' : 'Inactivo';
+  status.className   = 'sched-val' + (s.enabled ? ' on' : '');
+  document.getElementById('ss-next').textContent = s.next_run || '—';
+  document.getElementById('ss-last').textContent = s.last_run || '—';
 }
-async function loadSchedulerState() {
+
+async function loadScheduler() {
   try {
-    const r=await fetch(`${BASE}/api/scheduler`);
-    const d=await r.json();
-    document.getElementById('sched-toggle').checked=d.enabled||false;
-    if(d.mode) selectMode(d.mode);
-    if(d.interval_minutes) document.getElementById('inp-interval').value=d.interval_minutes;
-    if(d.daily_time) document.getElementById('inp-time').value=d.daily_time;
+    const r = await fetch(`${BASE}/api/scheduler`);
+    const d = await r.json();
+    document.getElementById('sched-toggle').checked = d.enabled || false;
+    if (d.mode) setMode(d.mode);
+    if (d.interval_minutes) document.getElementById('inp-interval').value = d.interval_minutes;
+    if (d.daily_time) document.getElementById('inp-time').value = d.daily_time;
     updateSchedUI(d);
   } catch {}
 }
-setInterval(loadSchedulerState,15000);
 
-// ── CHAT ───────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────
+   CHAT
+─────────────────────────────────────────────────────────────────── */
 function autoResize(el) {
-  el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,120)+'px';
-}
-function handleChatKey(e) {
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); }
-}
-function sendSuggestion(btn) {
-  document.getElementById('chat-input').value=btn.textContent;
-  sendChat();
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-async function sendChat() {
-  const input=document.getElementById('chat-input');
-  const msg=input.value.trim();
-  if(!msg) return;
+function onChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
 
-  input.value='';
-  input.style.height='auto';
-  document.getElementById('btn-send').disabled=true;
+function useSuggestion(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMessage();
+}
 
-  // Mensaje del usuario
-  appendChatMsg(msg,'user');
-  chatHistory.push({role:'user',content:msg});
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg   = input.value.trim();
+  if (!msg) return;
 
-  // Indicador de escritura
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('btn-send').disabled = true;
+
+  appendMsg(msg, 'user');
+  chatHistory.push({ role: 'user', content: msg });
+
   const typingId = appendTyping();
 
   try {
-    const r = await fetch(`${BASE}/api/chat`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+    const r = await fetch(`${BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: msg,
-        history: chatHistory.slice(-10),
-        context: statsCache
-      })
+        history: chatHistory.slice(-12),
+        context: statsCache,
+      }),
     });
-    const d=await r.json();
+    const d = await r.json();
     removeTyping(typingId);
 
     const reply = d.response || 'No pude procesar tu consulta.';
-    appendChatMsg(reply,'ai');
-    chatHistory.push({role:'assistant',content:reply});
-  } catch(e) {
+    appendMsg(reply, 'ai');
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch (e) {
     removeTyping(typingId);
-    appendChatMsg('Error al conectar con el agente. Verifica que el servidor esté activo.','ai');
+    appendMsg('Error de conexión con el servidor. Verifica que el backend esté activo.', 'ai');
   }
 
-  document.getElementById('btn-send').disabled=false;
+  document.getElementById('btn-send').disabled = false;
   input.focus();
 }
 
-function appendChatMsg(text, role) {
-  const container=document.getElementById('chat-messages');
-  const div=document.createElement('div');
-  div.className=`msg ${role}`;
-  const t=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+function appendMsg(text, role) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const t = nowT();
 
-  if(role==='ai') {
-    div.innerHTML=`
-      <div class="msg-ai-label"><div class="ai-avatar">I</div>Invoice Agent</div>
-      <div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div>
-      <div class="msg-meta">${t}</div>`;
+  if (role === 'ai') {
+    div.innerHTML = `
+      <div class="msg-label"><div class="msg-avatar">IA</div> Invoice Agent</div>
+      <div class="msg-bubble">${esc(text).replace(/\n/g, '<br>')}</div>
+      <div class="msg-time">${t}</div>`;
   } else {
-    div.innerHTML=`
-      <div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div>
-      <div class="msg-meta">${t}</div>`;
+    div.innerHTML = `
+      <div class="msg-bubble">${esc(text).replace(/\n/g, '<br>')}</div>
+      <div class="msg-time">${t}</div>`;
   }
+
   container.appendChild(div);
-  container.scrollTop=container.scrollHeight;
+  container.scrollTop = container.scrollHeight;
 }
 
 function appendTyping() {
-  const container=document.getElementById('chat-messages');
-  const id='typing-'+Date.now();
-  const div=document.createElement('div');
-  div.className='msg ai'; div.id=id;
-  div.innerHTML=`
-    <div class="msg-ai-label"><div class="ai-avatar">I</div>Invoice Agent</div>
-    <div class="msg-bubble"><div class="msg-typing">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    </div></div>`;
+  const container = document.getElementById('chat-messages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = id;
+  div.innerHTML = `
+    <div class="msg-label"><div class="msg-avatar">IA</div> Invoice Agent</div>
+    <div class="msg-bubble">
+      <div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>`;
   container.appendChild(div);
-  container.scrollTop=container.scrollHeight;
+  container.scrollTop = container.scrollHeight;
   return id;
 }
+
 function removeTyping(id) {
-  const el=document.getElementById(id);
-  if(el) el.remove();
+  const el = document.getElementById(id);
+  if (el) el.remove();
 }
 
-// ── WEBSOCKET ──────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────
+   WEBSOCKET
+─────────────────────────────────────────────────────────────────── */
 function connectWS() {
-  if(ws && ws.readyState<2) return;
-  try{ ws=new WebSocket(`${WS}/ws/logs`); } catch{ schedRec(); return; }
-  ws.onopen=()=>{
-    reconnN=0;
-    document.getElementById('ws-pill').className='ws-pill on';
-    document.getElementById('ws-txt').textContent='En línea';
-    log('Conexión establecida','success');
+  if (wsConn && wsConn.readyState < 2) return;
+
+  try { wsConn = new WebSocket(`${WS_URL}/ws/logs`); }
+  catch { scheduleReconnect(); return; }
+
+  wsConn.onopen = () => {
+    wsReconns = 0;
+    const badge = document.getElementById('ws-badge');
+    badge.classList.add('connected');
+    document.getElementById('ws-label').textContent = 'En línea';
+    addLog('WebSocket conectado', 'success');
   };
-  ws.onmessage=e=>{
-    try{
-      const d=JSON.parse(e.data);
-      if(d.level==='ping'||!d.message) return;
-      log(d.message,d.level,d.timestamp);
-      setPipe(d.message);
-      if(/completado|guardada|exitosamente/i.test(d.message)){
-        setTimeout(()=>{ loadStats(); loadInvoices(); },2000);
+
+  wsConn.onmessage = e => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d.level === 'ping' || !d.message) return;
+      addLog(d.message, d.level, d.timestamp);
+      updatePipeline(d.message);
+      if (/completado|guardada|exitosamente/i.test(d.message)) {
+        setTimeout(() => { fetchStats(); fetchInvoices(); }, 2000);
       }
     } catch {}
   };
-  ws.onerror=()=>{};
-  ws.onclose=()=>{
-    document.getElementById('ws-pill').className='ws-pill';
-    document.getElementById('ws-txt').textContent='Offline';
-    schedRec();
+
+  wsConn.onerror = () => {};
+  wsConn.onclose = () => {
+    const badge = document.getElementById('ws-badge');
+    badge.classList.remove('connected');
+    document.getElementById('ws-label').textContent = 'Offline';
+    scheduleReconnect();
   };
 }
-function schedRec(){
-  if(reconnTmr) clearTimeout(reconnTmr);
-  reconnN++;
-  reconnTmr=setTimeout(connectWS,Math.min(2000*reconnN,12000));
+
+function scheduleReconnect() {
+  if (wsTimer) clearTimeout(wsTimer);
+  wsReconns++;
+  wsTimer = setTimeout(connectWS, Math.min(2000 * wsReconns, 15000));
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────
+   INIT
+─────────────────────────────────────────────────────────────────── */
 async function init() {
-  await loadStats();
-  await loadInvoices();
-  await loadSchedulerState();
+  await fetchStats();
+  await fetchInvoices();
+  await loadScheduler();
   connectWS();
-  setInterval(()=>{ loadStats(); loadInvoices(); },30000);
+  setInterval(() => { fetchStats(); fetchInvoices(); }, 30000);
+  setInterval(loadScheduler, 15000);
 }
-document.addEventListener('DOMContentLoaded',init);
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
