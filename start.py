@@ -2,15 +2,30 @@ import uvicorn
 import os
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 9000))   # Railway inyecta PORT automáticamente
-    print("")
-    print(f"  Dashboard : http://localhost:{port}/dashboard.html")
-    print(f"  API Docs  : http://localhost:{port}/docs")
-    print("")
+    # Railway inyecta PORT automaticamente
+    # En local usa 9000 como fallback
+    port = int(os.environ.get("PORT", 9000))
+    print(f"Dashboard : http://localhost:{port}/dashboard.html")
+    print(f"API Docs  : http://localhost:{port}/docs")
     uvicorn.run(
-        "backend:fastapi_app",  # <- CRITICO: fastapi_app, no app
+        "backend:fastapi_app",
         host="0.0.0.0",
         port=port,
         reload=False,
         log_level="info"
     )
+```
+
+---
+
+## Y el `Procfile` — créalo en GitHub
+```
+1. En tu repo → botón "Add file" → "Create new file"
+2. Nombre del archivo: Procfile  (sin extensión, con P mayúscula)
+3. Contenido:
+```
+```
+web: uvicorn backend:fastapi_app --host 0.0.0.0 --port $PORT
+```
+```
+4. Commit changes
