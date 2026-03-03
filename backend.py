@@ -197,21 +197,49 @@ async def get_statistics():
     import pandas as pd
     try:
         df = read_sheets_df()
-        if df is None or df.empty or "Estado" not in df.columns:
+        if df is None or df.empty:
             return {"total": 0, "pendientes": 0, "pagadas": 0, "vencidas": 0,
                     "total_cop": 0.0, "total_usd": 0.0, "error": None}
 
-        df["Total"] = pd.to_numeric(df["Total"], errors="coerce").fillna(0)
-        moneda_col = next((c for c in df.columns if "moneda" in str(c).lower()), "Moneda")
-        factura_col = next((c for c in df.columns if "factura" in str(c).lower()), None)
+        # Buscar columna de valor total de forma flexible
+        # El schema nuevo usa "Valor Total", no "Total"
+        valor_col = next(
+            (c for c in df.columns if "valor total" in c.lower() or c.lower() == "total"),
+            None
+        )
+        estado_col = next(
+            (c for c in df.columns if c.lower() == "estado"),
+            None
+        )
+        factura_col = next(
+            (c for c in df.columns
+             if "número factura" in c.lower() or "numero factura" in c.lower()),
+            None
+        )
+
+        # Total COP: sumar "Valor Total"
+        total_cop = 0.0
+        if valor_col:
+            df[valor_col] = pd.to_numeric(df[valor_col], errors="coerce").fillna(0)
+            total_cop = float(df[valor_col].sum())
+
+        # Conteos por estado (case-insensitive)
+        pendientes = pagadas = vencidas = 0
+        if estado_col:
+            estado_norm = df[estado_col].fillna("").str.upper().str.strip()
+            pendientes = int((estado_norm == "PENDIENTE").sum())
+            pagadas    = int((estado_norm == "PAGADA").sum())
+            vencidas   = int((estado_norm == "VENCIDA").sum())
+
+        total_rows = int(df[factura_col].notna().sum()) if factura_col else len(df)
 
         return {
-            "total":      int(df[factura_col].notna().sum()) if factura_col else len(df),
-            "pendientes": int((df["Estado"] == "PENDIENTE").sum()),
-            "pagadas":    int((df["Estado"] == "PAGADA").sum()),
-            "vencidas":   int((df["Estado"] == "VENCIDA").sum()),
-            "total_cop":  float(df.loc[df[moneda_col] == "COP", "Total"].sum()) if moneda_col in df.columns else 0.0,
-            "total_usd":  float(df.loc[df[moneda_col] == "USD", "Total"].sum()) if moneda_col in df.columns else 0.0,
+            "total":      total_rows,
+            "pendientes": pendientes,
+            "pagadas":    pagadas,
+            "vencidas":   vencidas,
+            "total_cop":  total_cop,
+            "total_usd":  0.0,
             "error": None,
         }
     except Exception as e:
