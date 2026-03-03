@@ -25,7 +25,8 @@ if __name__ == "__main__":
 3. Contenido:
 ```
 ```
-uvicorn.run(fastapi_app, host="0.0.0.0", port=9000, ws="websockets", loop="uvloop")
+port = int(os.getenv("PORT", 9000))
+uvicorn.run(fastapi_app, host="0.0.0.0", port=port, ws="websockets", loop="uvloop")
 ```
 ```
 4. Commit changes
