@@ -25,7 +25,7 @@ if __name__ == "__main__":
 3. Contenido:
 ```
 ```
-web: uvicorn backend:fastapi_app --host 0.0.0.0 --port $PORT
+uvicorn.run(fastapi_app, host="0.0.0.0", port=9000, ws="websockets", loop="uvloop")
 ```
 ```
 4. Commit changes
