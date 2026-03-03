@@ -1,19 +1,10 @@
-"""
-Entry point — arranca el servidor FastAPI.
-Railway inyecta la variable PORT automaticamente.
-"""
-import uvicorn
-import os
+[build]
+builder = "NIXPACKS"
+buildCommand = "pip install 'uvicorn[standard]' --force-reinstall --no-cache-dir && python -c 'import websockets; print(\"websockets OK\")' && python -c 'import uvloop; print(\"uvloop OK\")'"
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 9000))
-    print(f"  Dashboard : http://localhost:{port}/dashboard.html")
-    print(f"  API Docs  : http://localhost:{port}/docs")
-    uvicorn.run(
-        "backend:fastapi_app",
-        host="0.0.0.0",
-        port=port,
-        reload=False,
-        log_level="info",
-        ws="websockets",
-    )
+[deploy]
+startCommand = "python start.py"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
