@@ -1,9 +1,9 @@
 """
 Módulo agente de extracción de facturas.
 - Conexión IMAP a Gmail
-- Extracción de datos con Gemini AI
+- Extracción de datos con Claude AI (Anthropic)
 - Procesamiento de PDF, DOCX, XLSX adjuntos
-- Guardado en Excel
+- Guardado en Google Sheets
 NO contiene rutas FastAPI — eso es responsabilidad de backend.py
 """
 
@@ -12,11 +12,9 @@ load_dotenv()
 
 import os
 import json
-import time
 import imaplib
 import email
 from email.header import decode_header
-import base64
 import io
 import re
 from datetime import datetime
@@ -36,13 +34,20 @@ GOOGLE_SHEETS_ID     = os.getenv("GOOGLE_SHEETS_ID", "")
 SERVICE_ACCOUNT_FILE = os.path.join(_BASE_DIR, os.getenv("SERVICE_ACCOUNT_FILE", "service_account.json"))
 SHEET_NAME           = "Facturas"
 
+# Columnas exactas en Google Sheets
 COLUMNS = [
-    "N° Factura", "Proveedor", "Fecha Emisión", "Fecha Vencimiento",
-    "Total", "Moneda", "Estado", "Descripción", "Email Origen", "Fecha Procesado"
+    "Mes", "Fecha Factura", "Número Factura", "Proveedor",
+    "ID", "Número ID", "Subtotal", "Descuento", "IVA", "Rete IVA",
+    "Rete ICA", "Impto Consumo", "Propina", "Otros Impuestos",
+    "Retención en la fuente", "Administración", "Utilidad", "Imprevistos",
+    "Valor Total", "Clasificación", "Estado", "Valor Pagado",
+    "Valor Por Pagar", "Fecha Pago", "Cliente", "Cotización Inventto",
+    "Observaciones", "Email Origen", "Fecha Procesado"
 ]
 
 # ── GOOGLE SHEETS CLIENT ──────────────────────────────────────────────────────
 _gspread_client = None
+
 
 def get_sheet():
     """Retorna la hoja de Google Sheets, inicializando el cliente si es necesario."""
@@ -58,12 +63,9 @@ def get_sheet():
     if _gspread_client is None:
         creds_json_env = os.getenv("GOOGLE_CREDENTIALS_JSON")
         if creds_json_env:
-            # ☁️ Despliegue en la nube: credenciales desde variable de entorno
-            import json as _json
-            creds_dict = _json.loads(creds_json_env)
+            creds_dict = json.loads(creds_json_env)
             creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
         else:
-            # 💻 Local: leer desde archivo service_account.json
             creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
         _gspread_client = gspread.authorize(creds)
 
@@ -80,11 +82,12 @@ def setup_sheets():
     """Crea encabezados en Google Sheets si la hoja está vacía."""
     try:
         ws = get_sheet()
-        if not ws.row_values(1):
+        existing = ws.row_values(1)
+        if not existing:
             ws.append_row(COLUMNS)
-            print(f"✅ Google Sheets inicializado: {SHEET_NAME}")
+            print(f"✅ Google Sheets inicializado con {len(COLUMNS)} columnas")
         else:
-            print(f"✅ Google Sheets conectado: {SHEET_NAME}")
+            print(f"✅ Google Sheets conectado: {SHEET_NAME} ({len(existing)} columnas)")
     except Exception as e:
         print(f"❌ Error conectando a Google Sheets: {e}")
         raise
@@ -177,7 +180,7 @@ def _extract_xlsx_text(data: bytes) -> str:
         return f"[Error XLSX: {e}]"
 
 
-def _get_email_content(msg) -> tuple[str, list]:
+def _get_email_content(msg) -> tuple:
     """Retorna (cuerpo_texto, lista_de_textos_adjuntos)."""
     body = ""
     attachments = []
@@ -186,7 +189,10 @@ def _get_email_content(msg) -> tuple[str, list]:
         ct = part.get_content_type()
         cd = str(part.get("Content-Disposition", ""))
 
-        if "attachment" in cd or ct in ("application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+        if "attachment" in cd or ct in (
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ):
             filename = part.get_filename() or ""
             payload = part.get_payload(decode=True)
             if not payload:
@@ -220,7 +226,14 @@ def _get_email_content(msg) -> tuple[str, list]:
 
 # ── INTELIGENCIA ARTIFICIAL (Claude) ─────────────────────────────────────────
 def _extract_with_ai(subject: str, body: str, attachments: list) -> Optional[dict]:
-    """Usa Claude (Anthropic) para extraer datos de la factura. Retorna dict o None."""
+    """
+    Usa Claude (Anthropic) para extraer datos de la factura.
+    Retorna dict con las claves de COLUMNS o None si no es factura.
+
+    IMPORTANTE: el prompt NO usa f-string para la plantilla JSON,
+    porque Python interpretaría {clave} como format specifiers y lanzaría
+    "Invalid format specifier".  Solo se usa f-string para full_content.
+    """
     try:
         import anthropic
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -230,46 +243,50 @@ def _extract_with_ai(subject: str, body: str, attachments: list) -> Optional[dic
             content_parts.append(f"Adjunto {i}:\n{att[:4000]}")
         full_content = "\n\n".join(content_parts)
 
-        prompt = f"""Analiza el siguiente correo y extrae los datos de factura si los hay.
-Si NO es una factura, responde exactamente: NO_ES_FACTURA
+        # ⚠️  String normal (NO f-string) para la plantilla JSON
+        #    Si usáramos f-string, Python intentaría evaluar {Mes}, {Subtotal}, etc.
+        prompt = (
+            "Analiza el siguiente correo y determina si contiene una factura.\n\n"
+            "Si NO es una factura, responde únicamente: NO_ES_FACTURA\n\n"
+            "Si SÍ es una factura, responde SOLO con un objeto JSON válido, "
+            "sin texto adicional ni bloques markdown. Usa exactamente estas claves "
+            "(deja en blanco o en 0 lo que no encuentres):\n\n"
+            '{\n'
+            '  "Mes": "",\n'
+            '  "Fecha Factura": "DD/MM/YYYY",\n'
+            '  "Número Factura": "",\n'
+            '  "Proveedor": "",\n'
+            '  "ID": "",\n'
+            '  "Número ID": "",\n'
+            '  "Subtotal": 0,\n'
+            '  "Descuento": 0,\n'
+            '  "IVA": 0,\n'
+            '  "Rete IVA": 0,\n'
+            '  "Rete ICA": 0,\n'
+            '  "Impto Consumo": 0,\n'
+            '  "Propina": 0,\n'
+            '  "Otros Impuestos": 0,\n'
+            '  "Retención en la fuente": 0,\n'
+            '  "Administración": 0,\n'
+            '  "Utilidad": 0,\n'
+            '  "Imprevistos": 0,\n'
+            '  "Valor Total": 0,\n'
+            '  "Clasificación": "",\n'
+            '  "Estado": "PENDIENTE",\n'
+            '  "Valor Pagado": 0,\n'
+            '  "Valor Por Pagar": 0,\n'
+            '  "Fecha Pago": "",\n'
+            '  "Cliente": "",\n'
+            '  "Cotización Inventto": "",\n'
+            '  "Observaciones": ""\n'
+            '}\n\n'
+            "CORREO A ANALIZAR:\n"
+            + full_content
+        )
 
-Si SÍ es una factura, responde SOLO en formato JSON así:
-# En app.py, donde construyes el registro de la factura extraída:
-factura_data = {
-    "Mes":                    mes,
-    "Fecha Factura":          fecha_factura,
-    "Número Factura":         numero_factura,
-    "Proveedor":              proveedor,
-    "ID":                     id_tipo,
-    "Número ID":              numero_id,
-    "Subtotal":               subtotal,
-    "Descuento":              descuento,
-    "IVA":                    iva,
-    "Rete IVA":               rete_iva,
-    "Rete ICA":               rete_ica,
-    "Impto Consumo":          impto_consumo,
-    "Propina":                propina,
-    "Otros Impuestos":        otros_impuestos,
-    "Retención en la fuente": retencion_fuente,
-    "Administración":         administracion,
-    "Utilidad":               utilidad,
-    "Imprevistos":            imprevistos,
-    "Valor Total":            valor_total,
-    "Clasificación":          clasificacion,
-    "Estado":                 estado,
-    "Valor Pagado":           valor_pagado,
-    "Valor Por Pagar":        valor_por_pagar,
-    "Fecha Pago":             fecha_pago,
-    "Cliente":                cliente,
-    "Cotización Inventto":    cotizacion,
-    "Observaciones":          observaciones,
-}
-CORREO:
-{full_content}
-"""
         resp = client.messages.create(
             model="claude-haiku-4-5",
-            max_tokens=512,
+            max_tokens=1024,
             messages=[{"role": "user", "content": prompt}]
         )
         text = resp.content[0].text.strip()
@@ -277,9 +294,9 @@ CORREO:
         if "NO_ES_FACTURA" in text:
             return None
 
-        # Extraer JSON: intentar directo, luego buscar bloque JSON con llaves balanceadas
-        def _extract_json(raw: str) -> Optional[dict]:
-            # 1) Intentar parsear todo el texto directamente
+        # Parser de 3 niveles para robusted ante distintos formatos de respuesta
+        def _parse_json(raw: str) -> Optional[dict]:
+            # 1) Intentar parsear directamente
             try:
                 return json.loads(raw)
             except Exception:
@@ -291,7 +308,7 @@ CORREO:
                     return json.loads(block.group(1).strip())
                 except Exception:
                     pass
-            # 3) Encontrar el bloque JSON con llaves balanceadas
+            # 3) Buscar el bloque JSON con llaves balanceadas
             start = raw.find('{')
             if start == -1:
                 return None
@@ -303,14 +320,15 @@ CORREO:
                     depth -= 1
                     if depth == 0:
                         try:
-                            return json.loads(raw[start:i+1])
+                            return json.loads(raw[start:i + 1])
                         except Exception:
                             return None
             return None
 
-        data = _extract_json(text)
+        data = _parse_json(text)
         if data:
             return data
+
         print(f"⚠️ Claude no devolvió JSON válido. Respuesta: {text[:200]}")
         return None
 
@@ -320,13 +338,19 @@ CORREO:
 
 
 def _is_duplicate_invoice(numero_factura: str) -> bool:
-    """Comprueba si la factura ya existe en Google Sheets."""
-    if not numero_factura or numero_factura == "N/A":
+    """Comprueba si la factura ya existe en Google Sheets por Número Factura."""
+    if not numero_factura or numero_factura in ("N/A", "0", ""):
         return False
     try:
         ws = get_sheet()
-        col_values = ws.col_values(1)  # columna "N° Factura"
-        for val in col_values[1:]:     # saltar encabezado
+        headers = ws.row_values(1)
+        # Buscar la columna "Número Factura"
+        try:
+            col_idx = headers.index("Número Factura") + 1
+        except ValueError:
+            col_idx = 3  # fallback: columna 3
+        col_values = ws.col_values(col_idx)
+        for val in col_values[1:]:  # saltar encabezado
             if str(val).strip() == str(numero_factura).strip():
                 return True
         return False
@@ -336,30 +360,59 @@ def _is_duplicate_invoice(numero_factura: str) -> bool:
 
 # ── GUARDAR EN GOOGLE SHEETS ──────────────────────────────────────────────────
 def save_to_sheets(invoice_data: dict, email_from: str):
-    """Agrega una fila a Google Sheets con los datos de la factura."""
+    """
+    Agrega una fila a Google Sheets con los datos extraídos.
+    El orden de columnas sigue exactamente COLUMNS.
+    """
     try:
-        numero    = str(invoice_data.get("numero_factura") or "N/A")
-        proveedor = str(invoice_data.get("proveedor") or "N/A")
+        numero    = str(invoice_data.get("Número Factura") or "N/A")
+        proveedor = str(invoice_data.get("Proveedor") or "N/A")
 
         if _is_duplicate_invoice(numero):
             print(f"⏭️ Factura duplicada omitida: {numero} — {proveedor}")
             return
 
+        def v(key, default=""):
+            """Obtiene valor del dict con fallback."""
+            val = invoice_data.get(key)
+            return val if val is not None else default
+
         row = [
+            v("Mes"),
+            v("Fecha Factura"),
             numero,
             proveedor,
-            str(invoice_data.get("fecha_emision") or "N/A"),
-            str(invoice_data.get("fecha_vencimiento") or "N/A"),
-            invoice_data.get("total") or 0,
-            str(invoice_data.get("moneda") or "COP"),
-            str(invoice_data.get("estado") or "PENDIENTE"),
-            str(invoice_data.get("descripcion") or ""),
+            v("ID"),
+            v("Número ID"),
+            v("Subtotal", 0),
+            v("Descuento", 0),
+            v("IVA", 0),
+            v("Rete IVA", 0),
+            v("Rete ICA", 0),
+            v("Impto Consumo", 0),
+            v("Propina", 0),
+            v("Otros Impuestos", 0),
+            v("Retención en la fuente", 0),
+            v("Administración", 0),
+            v("Utilidad", 0),
+            v("Imprevistos", 0),
+            v("Valor Total", 0),
+            v("Clasificación"),
+            v("Estado", "PENDIENTE"),
+            v("Valor Pagado", 0),
+            v("Valor Por Pagar", 0),
+            v("Fecha Pago"),
+            v("Cliente"),
+            v("Cotización Inventto"),
+            v("Observaciones"),
             email_from,
             datetime.now().strftime("%d/%m/%Y %H:%M"),
         ]
+
         ws = get_sheet()
         ws.append_row(row, value_input_option="USER_ENTERED")
         print(f"✅ Factura guardada en Sheets: {numero} — {proveedor}")
+
     except Exception as e:
         print(f"❌ Error guardando en Sheets: {e}")
         import traceback
@@ -381,7 +434,7 @@ def export_to_excel() -> str:
             if i == 1:
                 for cell in sheet[1]:
                     cell.font = Font(bold=True, color="FFFFFF")
-                    cell.fill = PatternFill("solid", fgColor="1F4E79")
+                    cell.fill = PatternFill("solid", fgColor="1B4FD8")
                     cell.alignment = Alignment(horizontal="center")
         wb.save(EXCEL_PATH)
         print(f"✅ Excel exportado: {EXCEL_PATH}")
@@ -435,7 +488,6 @@ def process_emails():
 
             processed_ids.add(eid)
             _save_processed_ids(processed_ids)
-
 
         except Exception as e:
             print(f"⚠️ Error procesando correo {eid}: {e}")
