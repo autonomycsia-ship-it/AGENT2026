@@ -234,17 +234,36 @@ def _extract_with_ai(subject: str, body: str, attachments: list) -> Optional[dic
 Si NO es una factura, responde exactamente: NO_ES_FACTURA
 
 Si SÍ es una factura, responde SOLO en formato JSON así:
-{{
-  "numero_factura": "...",
-  "proveedor": "...",                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-  "fecha_emision": "DD/MM/YYYY",
-  "fecha_vencimiento": "DD/MM/YYYY",
-  "total": 0.0,
-  "moneda": "COP",
-  "estado": "PENDIENTE",
-  "descripcion": "..."
-}}
-
+# En app.py, donde construyes el registro de la factura extraída:
+factura_data = {
+    "Mes":                    mes,
+    "Fecha Factura":          fecha_factura,
+    "Número Factura":         numero_factura,
+    "Proveedor":              proveedor,
+    "ID":                     id_tipo,
+    "Número ID":              numero_id,
+    "Subtotal":               subtotal,
+    "Descuento":              descuento,
+    "IVA":                    iva,
+    "Rete IVA":               rete_iva,
+    "Rete ICA":               rete_ica,
+    "Impto Consumo":          impto_consumo,
+    "Propina":                propina,
+    "Otros Impuestos":        otros_impuestos,
+    "Retención en la fuente": retencion_fuente,
+    "Administración":         administracion,
+    "Utilidad":               utilidad,
+    "Imprevistos":            imprevistos,
+    "Valor Total":            valor_total,
+    "Clasificación":          clasificacion,
+    "Estado":                 estado,
+    "Valor Pagado":           valor_pagado,
+    "Valor Por Pagar":        valor_por_pagar,
+    "Fecha Pago":             fecha_pago,
+    "Cliente":                cliente,
+    "Cotización Inventto":    cotizacion,
+    "Observaciones":          observaciones,
+}
 CORREO:
 {full_content}
 """
