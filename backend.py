@@ -382,7 +382,67 @@ async def root():
     except Exception:
         pass
     return "<h1>Invoice Agent</h1><a href='/dashboard.html'>Dashboard</a> | <a href='/docs'>API Docs</a>"
+# ── CHAT CON IA ────────────────────────────────────────────────────────────────
+@fastapi_app.post("/api/chat")
+async def chat_with_agent(payload: dict):
+    """
+    Endpoint de chat que usa Gemini con contexto de las facturas actuales.
+    Recibe: { message, history, context }
+    """
+    try:
+        import google.generativeai as genai
 
+        api_key = os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            return {"response": "Error: GOOGLE_API_KEY no configurada."}
+
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        # Construir contexto de facturas
+        context = payload.get("context", {})
+        ctx_text = f"""
+Eres un asistente financiero especializado en análisis de facturas.
+Tienes acceso a los siguientes datos actuales del sistema:
+
+- Total de facturas registradas: {context.get('total', 'N/A')}
+- Facturas pendientes de pago: {context.get('pendientes', 'N/A')}
+- Facturas pagadas: {context.get('pagadas', 'N/A')}
+- Facturas vencidas: {context.get('vencidas', 'N/A')}
+- Total en COP: ${context.get('total_cop', 0):,.0f}
+- Total en USD: ${context.get('total_usd', 0):,.2f}
+
+El sistema extrae facturas automáticamente de correos Gmail usando IA (Gemini).
+Las facturas tienen los campos: Mes, Fecha Factura, Número Factura, Proveedor,
+ID, Número ID, Subtotal, Descuento, IVA, Rete IVA, Rete ICA, Impto Consumo,
+Propina, Otros Impuestos, Retención en la fuente, Administración, Utilidad,
+Imprevistos, Valor Total, Clasificación, Estado, Valor Pagado, Valor Por Pagar,
+Fecha Pago, Cliente, Cotización Inventto, Observaciones.
+
+Responde siempre en español, de forma clara y concisa.
+Si te preguntan datos específicos que no tienes, indica qué información
+adicional necesitarías para responder.
+"""
+
+        # Construir historial
+        history = payload.get("history", [])
+        message = payload.get("message", "")
+
+        # Construir prompt con historial
+        conversation = ctx_text + "\n\n"
+        for h in history[-8:]:  # últimos 8 mensajes
+            role = "Usuario" if h["role"] == "user" else "Asistente"
+            conversation += f"{role}: {h['content']}\n\n"
+        conversation += f"Usuario: {message}\n\nAsistente:"
+
+        response = model.generate_content(conversation)
+        reply = response.text.strip()
+
+        return {"response": reply}
+
+    except Exception as e:
+        log_store.add_log(f"Error en chat: {str(e)}", "error")
+        return {"response": f"Error al procesar la consulta: {str(e)}"}
 
 # â”€â”€ ENTRY POINT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if __name__ == "__main__":
