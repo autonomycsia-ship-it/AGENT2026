@@ -9,10 +9,12 @@ anthropic
 gspread
 google-auth
 fastapi==0.109.0
-uvicorn[standard]==0.27.0
-websockets==12.0
+uvicorn==0.27.0
+uvloop>=0.14.0
+watchfiles>=0.13
+websockets>=10.4
 wsproto==1.2.0
-httptools==0.6.1
+httptools>=0.5.0
 python-multipart==0.0.6
 pandas==2.2.2
 numpy==2.0.0
